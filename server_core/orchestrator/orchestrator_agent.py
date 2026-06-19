@@ -17,52 +17,12 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from server_core import ModernVisualEngine
+from server_core.orchestrator.agent_base import BaseAgent
+from server_core.orchestrator.agent_protocol import AgentContractIssue, validate_agent_registry
+from server_core.orchestrator.agent_registry import build_agent_registry
 from server_core.orchestrator.agent_memory import AgentMemory
-from server_core.orchestrator.cleanup_agent import CleanupAgent
-from server_core.orchestrator.exfil_agent import ExfilAgent
-from server_core.orchestrator.exploit_agent import ExploitAgent
 from server_core.orchestrator.mission_tracker import MissionTracker
-from server_core.orchestrator.post_exploit_agent import PostExploitAgent
-from server_core.orchestrator.recon_agent import ReconAgent
 from server_core.orchestrator.task_decomposer import TaskDecomposer
-from server_core.orchestrator.vuln_agent import VulnAgent
-
-# ── Attack agents ──
-from server_core.orchestrator.attack_agents.privesc_agent import PrivescAgent
-from server_core.orchestrator.attack_agents.cred_access_agent import CredAccessAgent
-from server_core.orchestrator.attack_agents.persistence_agent import PersistenceAgent
-from server_core.orchestrator.attack_agents.cloud_agent import CloudAgent
-from server_core.orchestrator.attack_agents.lateral_move_agent import LateralMoveAgent
-from server_core.orchestrator.attack_agents.webapp_agent import WebAppAgent
-
-# ── Defense agents ──
-from server_core.orchestrator.defense_agents.emergency_agent import EmergencyAgent
-from server_core.orchestrator.defense_agents.opsec_agent import OPSECAgent
-from server_core.orchestrator.defense_agents.decoy_agent import DecoyAgent
-from server_core.orchestrator.defense_agents.counter_surveillance import CounterSurveillanceAgent
-from server_core.orchestrator.defense_agents.reverse_trace import ReverseTraceAgent
-from server_core.orchestrator.defense_agents.trace_buster import TraceBusterAgent
-
-# ── Specialist agents ──
-from server_core.orchestrator.specialist_agents.supply_chain_agent import SupplyChainAgent
-from server_core.orchestrator.specialist_agents.social_eng_agent import SocialEngineeringAgent
-from server_core.orchestrator.specialist_agents.bug_bounty_agent import BugBountyAgent
-from server_core.orchestrator.specialist_agents.auto_fixer_agent import AutoFixerAgent
-from server_core.orchestrator.specialist_agents.reverse_engineering_agent import ReverseEngineeringAgent
-
-# ── Domain agents ──
-from server_core.orchestrator.domain_agents.iot_agent import IoTAgent
-from server_core.orchestrator.domain_agents.scada_agent import SCADAAgent
-from server_core.orchestrator.domain_agents.automotive_agent import AutomotiveAgent
-from server_core.orchestrator.domain_agents.satellite_agent import SatelliteAgent
-from server_core.orchestrator.domain_agents.blockchain_agent import BlockchainAgent
-from server_core.orchestrator.domain_agents.ai_exploit_agent import AIExploitAgent
-from server_core.orchestrator.domain_agents.mobile_agent import MobileAgent
-from server_core.orchestrator.domain_agents.telecom_agent import TelecomAgent
-from server_core.orchestrator.domain_agents.physical_agent import PhysicalAgent
-from server_core.orchestrator.domain_agents.darkweb_agent import DarkWebAgent
-from server_core.orchestrator.domain_agents.drone_agent import DroneAgent
-from server_core.orchestrator.domain_agents.nuclear_opsec_agent import NuclearOpsecAgent
 
 logger = logging.getLogger(__name__)
 
@@ -80,48 +40,8 @@ class OrchestratorAgent:
     DEFAULT_STEALTH = "maximum"
 
     def __init__(self):
-        self.agents: Dict[str, Any] = {
-            # ── Core mission phases ──
-            "recon": ReconAgent(),
-            "vuln": VulnAgent(),
-            "exploit": ExploitAgent(),
-            "post_exploit": PostExploitAgent(),
-            "exfil": ExfilAgent(),
-            "cleanup": CleanupAgent(),
-            # ── Attack agents ──
-            "privesc": PrivescAgent(),
-            "cred_access": CredAccessAgent(),
-            "persistence": PersistenceAgent(),
-            "cloud": CloudAgent(),
-            "lateral_move": LateralMoveAgent(),
-            "webapp": WebAppAgent(),
-            # ── Defense agents ──
-            "emergency": EmergencyAgent(),
-            "opsec": OPSECAgent(),
-            "decoy": DecoyAgent(),
-            "counter_surveillance": CounterSurveillanceAgent(),
-            "reverse_trace": ReverseTraceAgent(),
-            "trace_buster": TraceBusterAgent(),
-            # ── Specialist agents ──
-            "supply_chain": SupplyChainAgent(),
-            "social_eng": SocialEngineeringAgent(),
-            "bug_bounty": BugBountyAgent(),
-            "auto_fixer": AutoFixerAgent(),
-            "reverse_engineering": ReverseEngineeringAgent(),
-            # ── Domain agents (v3.2) ──
-            "iot": IoTAgent(),
-            "scada": SCADAAgent(),
-            "automotive": AutomotiveAgent(),
-            "satellite": SatelliteAgent(),
-            "blockchain": BlockchainAgent(),
-            "ai_exploit": AIExploitAgent(),
-            "mobile": MobileAgent(),
-            "telecom": TelecomAgent(),
-            "physical": PhysicalAgent(),
-            "darkweb": DarkWebAgent(),
-            "drone": DroneAgent(),
-            "nuclear_opsec": NuclearOpsecAgent(),
-        }
+        self.agents: Dict[str, BaseAgent] = build_agent_registry()
+        self._validate_agent_contracts()
         self.memory = AgentMemory()
         self.decomposer = TaskDecomposer()
         self.tracker = MissionTracker()
@@ -129,6 +49,24 @@ class OrchestratorAgent:
         self._pause_flags: Dict[str, bool] = {}
         self._abort_flags: Dict[str, bool] = {}
         self._executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="orchestrator-")
+
+    def _validate_agent_contracts(self) -> None:
+        issues = validate_agent_registry(self.agents)
+        non_base_agents = [
+            name for name, agent in self.agents.items()
+            if not isinstance(agent, BaseAgent)
+        ]
+        if non_base_agents:
+            issues.extend(
+                AgentContractIssue(
+                    name=name,
+                    reason="registered agent is not BaseAgent-backed",
+                )
+                for name in non_base_agents
+            )
+        if issues:
+            details = "; ".join(f"{issue.name}: {issue.reason}" for issue in issues)
+            raise TypeError(f"Invalid orchestrator agent registry: {details}")
 
     def execute_mission(
         self,

@@ -65,6 +65,7 @@ from .dark_web import *
 from .undetectable import *
 from .defense import *
 from .orchestrator import *
+from .registry_backfill import *
 
 def register_blueprints(app):
   """Register all API blueprints with the Flask app."""
@@ -419,6 +420,9 @@ def register_blueprints(app):
 
   # Mission Orchestrator
   app.register_blueprint(api_orchestrator_bp)
+
+  # Registry backfill routes for declared tool endpoints.
+  app.register_blueprint(api_registry_backfill_bp)
 
   # v3.3 GODMODE Engine — 7 Pillars + 15 Capabilities
   from server_api.engine.engine_routes import engine_bp

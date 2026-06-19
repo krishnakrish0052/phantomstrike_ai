@@ -173,8 +173,8 @@ defense_coordinator = _Lazy(_get_defense_coordinator)
 
 # ── Mission Orchestrator ──────────────────────────────────────────────────
 def _get_orchestrator_agent():
-    from server_core.orchestrator import PhantomOrchestratorAgent
-    return PhantomOrchestratorAgent()
+    from server_core.orchestrator import OrchestratorAgent
+    return OrchestratorAgent()
 
 orchestrator_agent = _Lazy(_get_orchestrator_agent)
 

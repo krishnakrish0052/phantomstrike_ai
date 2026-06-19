@@ -1,6 +1,7 @@
-# PhantomStrike v3.2 — 35-Agent Swarm Architecture
+# PhantomStrike v3.3 — 35-Agent Swarm Architecture
 
 **Built: June 19, 2026**
+**Current Runtime Version**: 3.3.0
 
 > Universal Autonomous Hacking Platform. Any target. Any domain. Any defense.
 > One prompt → total compromise. Zero human intervention required.
@@ -9,13 +10,14 @@
 
 ## 1. System Overview
 
-PhantomStrike v3.2 is an **autonomous AI agent swarm** that attacks, defends,
-specializes, and dominates across all 12 attack domains. The system runs as a
-Flask REST API with a FastMCP bridge that exposes 200+ tools to AI models.
+PhantomStrike v3.3 is an **autonomous AI agent swarm** that attacks, defends,
+specializes, and dominates across all attack domains. The system runs as a
+Flask REST API with a FastMCP bridge, a BaseAgent-backed 35-agent runtime, and
+a v3.3 engine layer for advanced planning/evolution capabilities.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    PHANTOMSTRIKE v3.2                       │
+│                    PHANTOMSTRIKE v3.3                       │
 │              Universal Autonomous Hacking Platform           │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
@@ -53,9 +55,11 @@ Flask REST API with a FastMCP bridge that exposes 200+ tools to AI models.
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
 | API Server | Flask (Python 3.13+) | REST API with 397 routes, bearer auth |
-| MCP Bridge | FastMCP | Exposes agent tools to AI models (Claude, GPT, etc.) |
+| MCP Bridge | FastMCP | Exposes compact/default/full profiles to AI models |
 | Orchestrator | ReAct loop + EGATS | Mission lifecycle: decompose → dispatch → monitor → adapt |
-| Agent Swarm | 35 specialized agents | Autonomous attack/defense/specialist/domain operations |
+| Agent Swarm | 35 BaseAgent-backed agents | Autonomous attack/defense/specialist/domain operations |
+| Agent Registry | `agent_registry.py` | Builds the fleet, wraps legacy agents, preserves a single runtime contract |
+| v3.3 Engine | `server_core/engine/` | 7 pillars + 15 advanced capabilities for future orchestration passes |
 | Hive Mind | Shared knowledge base | Thread-safe, typed collections, DB persistence, event bus |
 | Tool Bridge | REST API wrappers | 200+ real security tools with defense pre-check pipeline |
 | Database | SQLite (29 tables) | Missions, agents, exploits, credentials, loot, defense |
@@ -66,9 +70,11 @@ Flask REST API with a FastMCP bridge that exposes 200+ tools to AI models.
 
 ## 2. The 35-Agent Fleet
 
-Agents are organized into 5 categories. Every agent inherits from
-`server_core/orchestrator/agent_base.py` and runs a ReAct (Reasoning + Acting)
-loop. Agents NEVER talk directly — all communication flows through the Hive Mind.
+Agents are organized into 5 categories. At runtime, all 35 agents are
+BaseAgent-backed objects created by `server_core/orchestrator/agent_registry.py`.
+Newer agents inherit `server_core/orchestrator/agent_base.py` directly; legacy
+agents are preserved and wrapped by `BaseAgentRuntimeAdapter`. Agents NEVER talk
+directly — all communication flows through the Hive Mind.
 
 ### Category 1: Core Agents (6) — The Kill Chain
 
@@ -159,7 +165,7 @@ loop. Agents NEVER talk directly — all communication flows through the Hive Mi
 | 22 | Auto Fixer | `specialist_agents/auto_fixer_agent.py` | Plan → Present → Approve → Fix → Verify (human-gated) |
 | 23 | Reverse Engineering | `specialist_agents/reverse_engineering_agent.py` | Binary analysis, Ghidra/radare2, vulnerability pattern extraction |
 
-### Category 5: Domain Agents (12) — Universal Attack Surface ★ NEW in v3.2
+### Category 5: Domain Agents (12) — Universal Attack Surface
 
 ```
 /server_core/orchestrator/domain_agents/
@@ -195,7 +201,44 @@ loop. Agents NEVER talk directly — all communication flows through the Hive Mi
 
 ---
 
-## 3. Hive Mind — Shared Knowledge Base
+## 3. v3.3 Engine Layer
+
+The v3.3 engine layer lives under `server_core/engine/`. It is separate from
+the 35-agent fleet and provides higher-order capabilities that can be invoked
+by orchestration, specialist workflows, and future autonomous planning passes.
+
+### 7 Pillars
+
+| Pillar | Module |
+|--------|--------|
+| Self-Writing Code | `swce.py` |
+| Digital Twin | `digital_twin.py` |
+| Reality Distortion Field | `reality_distortion.py` |
+| Evolutionary Breeding | `evolutionary_breeding.py` |
+| Temporal Weaver | `temporal_weaver.py` |
+| Universal Zero-Day Factory | `zero_day_factory.py` |
+| Distributed Consciousness Mesh | `distributed_consciousness.py` |
+
+### 15 v3.3 Capabilities
+
+Quantum Attack Search, Predictive Precognition, Memetic Attack, Cross-Reality
+Bridge, Legal Grayzone, Biological Attack, Infrastructure Genesis, Defender
+Psychology, Recursive Self-Improve, Universal Protocol Decoder, False Flag Ops,
+Economic Attack, Swarm Intelligence, Honeypot Ops, and Insider Threat.
+
+### Runtime Wiring Changes
+
+| Area | v3.3 State |
+|------|------------|
+| Agent construction | `build_agent_registry()` is the single fleet construction path |
+| Agent contract | 35/35 runtime agents are `BaseAgent` instances |
+| Legacy compatibility | 29 legacy-style agents are wrapped by `BaseAgentRuntimeAdapter` |
+| Native BaseAgent agents | 6 agents inherit `BaseAgent` directly |
+| Verification | `tests/test_core_wiring.py` asserts the full BaseAgent-backed fleet |
+
+---
+
+## 4. Hive Mind — Shared Knowledge Base
 
 The Hive Mind is the central nervous system. All 35 agents read from and write to
 it. No agent-to-agent direct communication exists.
@@ -278,10 +321,12 @@ User: "Hack example.com completely"
 
 ---
 
-## 4. Tool Bridge — 200+ Tool Integrations
+## 5. Tool Bridge — Tool Integrations
 
 The Tool Bridge maps agent capabilities to real security tools. Every tool call
-passes through the defense pre-check pipeline.
+passes through the defense pre-check pipeline. The external installer covers
+the broader Kali/security-tool arsenal, while `tool_registry.py` tracks the
+runtime logical tool map.
 
 ```
                         ┌─────────────────────┐
@@ -308,26 +353,20 @@ AGENT ──► request ─────►│  │ Defense Check │   │──
                         └─────────────────────┘
 ```
 
-### Tool Categories
+### Runtime Registry State
 
-| Category | Count | Examples |
-|----------|-------|----------|
-| Reconnaissance | 25 | nmap, masscan, amass, subfinder, assetfinder, shodan |
-| Web Exploitation | 30 | sqlmap, nuclei, ffuf, dirb, wpscan, burp-rest-api |
-| Exploitation | 20 | metasploit, searchsploit, pwntools, ropper |
-| Post-Exploitation | 25 | mimikatz, bloodhound, impacket, crackmapexec, evil-winrm |
-| IoT/Embedded | 15 | binwalk, firmwalker, FACT, flashrom, openocd, gatttool |
-| SCADA/ICS | 12 | modbus-cli, s7comm, plcscan, isf, opcua-client |
-| Automotive | 10 | can-utils, caringcaribou, savvycan, icsim |
-| Satellite/RF | 15 | gnuradio, hackrf, rtl-sdr, gqrx, satdump, gr-gsm |
-| Blockchain | 12 | foundry, slither, mythril, echidna, web3.py, hardhat |
-| Mobile | 10 | frida, objection, jadx, apktool, mobsf, mitmproxy |
-| Telecom | 8 | srsRAN, Open5GS, YateBTS, sigPloit, SIMtrace |
-| Physical | 12 | proxmark3, flipper-utils, ducky-flasher, esp32-marauder |
+| Metric | Current v3.3 State |
+|--------|--------------------|
+| Static registry entries | 158 logical tools |
+| Duplicate registry endpoints | 0 |
+| Live health-check records | 157 |
+| Verified available in local smoke test | 153 / 157 |
+| Essential tool status | All essential tools available |
+| Notable fixes | Unique Impacket alias routes, real `hashcat-utils` route, `vol` routed to Volatility3 |
 
 ---
 
-## 5. Phantom Proxy — Identity Obfuscation
+## 6. Phantom Proxy — Identity Obfuscation
 
 The Phantom Proxy layer ensures all agent traffic is anonymized and rotated.
 
@@ -359,7 +398,7 @@ The Phantom Proxy layer ensures all agent traffic is anonymized and rotated.
 
 ---
 
-## 6. MCP Tool Exposure for AI Agents
+## 7. MCP Tool Exposure for AI Agents
 
 FastMCP bridges PhantomStrike to external AI agents (Claude Desktop, 5ire, etc.).
 
@@ -367,17 +406,30 @@ FastMCP bridges PhantomStrike to external AI agents (Claude Desktop, 5ire, etc.)
 ┌─────────────┐     FastMCP/JSON-RPC     ┌──────────────────┐
 │  AI AGENT   │◄────────────────────────►│  PHANTOMSTRIKE    │
 │  (Claude,   │                          │  MCP SERVER       │
-│   GPT,      │  Tools exposed:          │                   │
-│   Gemini)   │  - recon(target)         │  ┌─────────────┐  │
-│             │  - exploit(target, cve)  │  │ 397 API     │  │
-│             │  - privesc(session_id)   │  │ endpoints   │  │
-│             │  - exfil(session,path)   │  │             │  │
-│             │  - opsec_check(action)   │  │ 35 agent    │  │
-│             │  - go_dark()             │  │ wrappers    │  │
-│             │  - ...35+ tools          │  │             │  │
+│   GPT,      │  Profiles exposed:       │                   │
+│   Gemini)   │  - compact: 2 tools      │  ┌─────────────┐  │
+│             │  - default: 129 tools    │  │ 397+ API    │  │
+│             │  - full: 230 tools       │  │ endpoints   │  │
+│             │                          │  │             │  │
+│             │  Exploitation tools use  │  │ 35-agent    │  │
+│             │  injected ApiClient calls│  │ runtime     │  │
 │             │                          │  └─────────────┘  │
 └─────────────┘                          └──────────────────┘
 ```
+
+### v3.3 MCP Wiring
+
+| Profile | Tool Count | Purpose |
+|---------|------------|---------|
+| `compact` | 2 | Gateway-only `classify_task` and `run_tool` for small-context clients |
+| `default` | 129 | Common offensive/security workflow tools |
+| `full` | 230 | Every registered MCP tool, including plugin tools and aliases |
+
+The exploitation MCP module follows the same registration pattern as the rest
+of `mcp_tools`: `register_exploitation_tools(mcp, api_client, logger)` receives
+the injected API client and calls `ApiClient.safe_post` / `safe_get`. Profile
+dependency resolution is deterministic and preserves order, with dependency
+profiles loaded before the dependent profile.
 
 ### Configuration
 
@@ -398,7 +450,7 @@ FastMCP bridges PhantomStrike to external AI agents (Claude Desktop, 5ire, etc.)
 
 ---
 
-## 7. Data Flow — Mission Lifecycle
+## 8. Data Flow — Mission Lifecycle
 
 ```
 USER PROMPT
@@ -490,7 +542,7 @@ class AgentBase:
 
 ---
 
-## 8. Database Schema (29 Tables)
+## 9. Database Schema (29 Tables)
 
 | Category | Tables |
 |----------|--------|
@@ -506,9 +558,9 @@ class AgentBase:
 
 ---
 
-## 9. Deployment
+## 10. Deployment
 
-PhantomStrike v3.2 runs **natively on Kali Linux** — no Docker, no containers.
+PhantomStrike v3.3 runs **natively on Kali Linux** — no Docker, no containers.
 All tools are real Kali packages installed directly on the host.
 
 ### Quick Start
@@ -561,25 +613,27 @@ All tools are real Kali packages installed directly on the host.
 
 ---
 
-## 10. Verified Capabilities
+## 11. Verified Capabilities
 
 - **AutoFixer**: Plan created → pending_approval → operator approves → fix executed ✓
 - **OPSEC Audit**: sqlmap risk=85 → VETOED → suggests --random-agent --delay=2 ✓
 - **BugBounty**: Hunt target → 2 findings → check duplicates → generate report ✓
 - **Emergency**: go_dark → terminate all + wipe evidence + rotate identities ✓
 - **Hive Mind**: Thread-safe, context queries per agent type, DB persistence ✓
-- **Tool Bridge**: 200+ real tool endpoints mapped, defense pre-check pipeline ✓
+- **Tool Bridge**: Runtime registry has 158 logical tools and no duplicate endpoints ✓
 - **Server**: 397 routes, all healthy ✓
-- **35 Agents**: All agent files present with ReAct loop and Hive Mind integration ✓
+- **35 Agents**: All runtime agents are BaseAgent-backed through the registry ✓
+- **MCP Profiles**: compact/default/full expose 2/129/230 tools ✓
 - **Cross-Domain**: AI identifies target domain from fingerprint, dispatches correct agents ✓
 
 ---
 
-## 11. Agent File Mapping Reference
+## 12. Agent File Mapping Reference
 
 ```
 server_core/orchestrator/
 ├── agent_base.py                    # Base class (ReAct loop, ToolExecutor, PatternMatcher)
+├── agent_registry.py                # v3.3 fleet builder + legacy BaseAgent adapter
 ├── hive_mind.py                     # Shared KB (thread-safe, typed, DB-persisted)
 ├── tool_bridge.py                   # 200+ tool wrappers with defense pipeline
 ├── orchestrator_agent.py            # Mission lifecycle manager
@@ -629,7 +683,7 @@ server_core/orchestrator/
 
 ---
 
-## 12. Ethics & Safety Gates
+## 13. Ethics & Safety Gates
 
 - **Autonomous ransomware** requires explicit operator opt-in with secondary confirmation
 - **Social engineering** operates only against authorized penetration test targets
@@ -642,4 +696,4 @@ server_core/orchestrator/
 
 ---
 
-*PhantomStrike v3.2 — One prompt. Total compromise. Zero human intervention.*
+*PhantomStrike v3.3 — One prompt. Total compromise. Zero human intervention.*

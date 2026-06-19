@@ -11,6 +11,20 @@ logger = logging.getLogger(__name__)
 
 api_password_cracking_hashcat_bp = Blueprint("api_password_cracking_hashcat", __name__)
 
+HASHCAT_UTILS = {
+    "cap2hccapx",
+    "combinator",
+    "len",
+    "req-exclude",
+    "req-include",
+}
+
+
+def _append_shell_args(command: str, additional_args: str) -> str:
+    if not additional_args:
+        return command
+    return f"{command} {' '.join(shlex.quote(part) for part in shlex.split(additional_args))}"
+
 
 @api_password_cracking_hashcat_bp.route("/api/tools/hashcat", methods=["POST"])
 def hashcat():
@@ -69,6 +83,58 @@ def hashcat():
                 os.unlink(tmp_file)
     except Exception as e:
         logger.error(f"💥 Error in hashcat endpoint: {str(e)}")
+        return jsonify({
+            "error": f"Server error: {str(e)}"
+        }), 500
+
+
+@api_password_cracking_hashcat_bp.route("/api/tools/hashcat-utils", methods=["POST"])
+def hashcat_utils():
+    """Execute standalone hashcat utility binaries."""
+    try:
+        params = request.json or {}
+        utility = str(params.get("utility", "cap2hccapx")).strip()
+        input_file = params.get("input_file") or params.get("hash_file") or ""
+        output_file = params.get("output_file", "")
+        left_file = params.get("left_file") or input_file
+        right_file = params.get("right_file", "")
+        additional_args = params.get("additional_args", "")
+
+        if utility not in HASHCAT_UTILS:
+            return jsonify({
+                "error": "Unsupported hashcat utility",
+                "supported_utilities": sorted(HASHCAT_UTILS),
+            }), 400
+
+        if utility == "combinator":
+            if not left_file or not right_file:
+                return jsonify({
+                    "error": "left_file and right_file are required for combinator"
+                }), 400
+            command = f"{shlex.quote(utility)} {shlex.quote(left_file)} {shlex.quote(right_file)}"
+            if output_file:
+                command += f" > {shlex.quote(output_file)}"
+        else:
+            if not input_file:
+                return jsonify({
+                    "error": "input_file parameter is required"
+                }), 400
+            command = f"{shlex.quote(utility)} {shlex.quote(input_file)}"
+            if output_file:
+                command += f" {shlex.quote(output_file)}"
+
+        command = _append_shell_args(command, additional_args)
+        result = execute_command(
+            command,
+            tool="hashcat-utils",
+            endpoint="/api/tools/hashcat-utils",
+            params=params,
+        )
+        return jsonify(result)
+    except ValueError as e:
+        return jsonify({"error": f"Invalid additional_args: {str(e)}"}), 400
+    except Exception as e:
+        logger.error(f"Error in hashcat-utils endpoint: {str(e)}")
         return jsonify({
             "error": f"Server error: {str(e)}"
         }), 500

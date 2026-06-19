@@ -78,6 +78,24 @@ def _probe_binary(check_type: str, binary: str) -> bool:
     paths_ovrrides = config_core.get("PATHS", {})
     GO_PATH = paths_ovrrides.get("GO_BINARYS", "{HOME}/go/bin/")
     GO_BINARYS = GO_PATH.replace("{HOME}", home_path)
+    probe_env = os.environ.copy()
+    extra_paths = [
+        os.path.join(home_path, ".local", "bin"),
+        os.path.join(home_path, "go", "bin"),
+        os.path.join(home_path, ".cargo", "bin"),
+    ]
+    try:
+        gem_dir = subprocess.run(
+            ["ruby", "-e", "print Gem.user_dir"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).stdout.strip()
+        if gem_dir:
+            extra_paths.append(os.path.join(gem_dir, "bin"))
+    except Exception:
+        pass
+    probe_env["PATH"] = os.pathsep.join([*extra_paths, probe_env.get("PATH", "")])
     
     if check_type == "builtin":
         return True
@@ -86,36 +104,42 @@ def _probe_binary(check_type: str, binary: str) -> bool:
             r = subprocess.run(
                 ["dpkg", "-s", binary],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                env=probe_env,
             )
             return r.returncode == 0
         elif check_type == "pip":
             r = subprocess.run(
                 [sys.executable, "-m", "pip", "list"],
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+                env=probe_env,
             )
             return binary in r.stdout
         elif check_type == "gem":
             r = subprocess.run(
                 ["gem", "list"],
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+                env=probe_env,
             )
             return binary in r.stdout
         elif check_type == "cargo":
             r = subprocess.run(
                 ["cargo", "install", "--list"],
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+                env=probe_env,
             )
             return binary in r.stdout
         elif check_type == "go":
             r = subprocess.run(
                 ["go", "version", "-m", GO_BINARYS],
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+                env=probe_env,
             )
             return binary in r.stdout
         else:  # which (default)
             r = subprocess.run(
-                ["which", binary],
+                ["bash", "-lc", f"command -v {binary!r} >/dev/null 2>&1"],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                env=probe_env,
             )
             return r.returncode == 0
     except Exception:

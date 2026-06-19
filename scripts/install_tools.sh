@@ -13,7 +13,7 @@
 #
 #  OPTIONS:
 #    --only <category>   Install only a specific category
-#                        Categories: network, web, auth, binary, cloud, ctf, osint, browser
+#                        Categories: network, web, auth, exploitation, binary, cloud, ctf, osint, wifi, database, ad, browser
 #    --dry-run           Preview what would be installed, without making changes
 #    --show-log          Display full install log at the end
 #    --list              List all categories and their tools, then exit
@@ -109,10 +109,14 @@ print_help() {
   echo "  network   Network reconnaissance & scanning tools (25+)"
   echo "  web       Web application security testing tools (40+)"
   echo "  auth      Authentication & password cracking tools (12+)"
+  echo "  exploitation Exploit frameworks and exploit databases"
   echo "  binary    Binary analysis & reverse engineering tools (25+)"
   echo "  cloud     Cloud & container security tools (20+)"
   echo "  ctf       CTF & digital forensics tools (20+)"
   echo "  osint     OSINT & intelligence gathering tools (20+)"
+  echo "  wifi      Wireless capture and WiFi assessment tools"
+  echo "  database  Database clients used by DB query endpoints"
+  echo "  ad        Active Directory helper tools"
   echo "  browser   Browser agent dependencies (Chromium + ChromeDriver)"
   echo ""
   echo -e "${BOLD}EXAMPLES${RESET}"
@@ -147,6 +151,9 @@ print_list() {
   echo -e "${CYAN}🔐 AUTH / PASSWORD (12+)${RESET}"
   echo "   hydra, john, hashcat, medusa, patator, evil-winrm, hash-identifier"
   echo ""
+  echo -e "${CYAN}💥 EXPLOITATION${RESET}"
+  echo "   metasploit-framework, searchsploit"
+  echo ""
   echo -e "${CYAN}🔬 BINARY / REVERSE ENGINEERING (25+)${RESET}"
   echo "   gdb, radare2, binwalk, ropgadget, checksec, exiftool, volatility3,"
   echo "   strings/objdump/readelf (binutils)"
@@ -168,6 +175,13 @@ print_list() {
   echo ""
   echo -e "${CYAN}🌍 BROWSER AGENT${RESET}"
   echo "   chromium, chromedriver"
+  echo ""
+  echo -e "${CYAN}📡 WIFI / WIRELESS${RESET}"
+  echo "   aircrack-ng suite, hcxdumptool, hcxpcapngtool, mdk4, bettercap,"
+  echo "   wifite, tcpdump, tshark, wireshark, kismet"
+  echo ""
+  echo -e "${CYAN}🗄️  DATABASE / ACTIVE DIRECTORY${RESET}"
+  echo "   mysql client, sqlite3, impacket, ldapdomaindump"
 }
 
 # ─── OS Detection ─────────────────────────────────────────────────────────────
@@ -587,6 +601,18 @@ _pip_install() {
   pip3 install --user --quiet --break-system-packages "$1" 2>/dev/null
 }
 
+_pip_install_path() {
+  pip3 install --user --quiet "$1" 2>/dev/null || \
+  pip3 install --user --quiet --break-system-packages "$1" 2>/dev/null
+}
+
+_pip_install_requirements() {
+  local requirements_file="$1"
+  [[ -r "$requirements_file" ]] || return 1
+  pip3 install --user --quiet -r "$requirements_file" 2>/dev/null || \
+  pip3 install --user --quiet --break-system-packages -r "$requirements_file" 2>/dev/null
+}
+
 # go install
 # Always cleans build cache + module cache after each install to prevent
 # disk exhaustion in space-constrained environments (Docker, CI, VMs).
@@ -632,6 +658,338 @@ _make_wrapper() {
 exec $run_cmd "\$@"
 WRAP
   chmod +x "$HOME/.local/bin/$name"
+}
+
+_install_theharvester() {
+  (_pip_install "theHarvester" && (tool_exists theHarvester || tool_exists theharvester)) && return 0
+  (_pkg_install "theharvester" && (tool_exists theHarvester || tool_exists theharvester)) && return 0
+
+  local dir="$HOME/.local/share/theHarvester"
+  _git_install "https://github.com/laramies/theHarvester.git" "$dir" || return 1
+  _pip_install_path "$dir" || true
+  [[ -f "$dir/theHarvester.py" ]] || return 1
+  _make_wrapper "theHarvester" "python3 $dir/theHarvester.py"
+  ln -sf "$HOME/.local/bin/theHarvester" "$HOME/.local/bin/theharvester"
+}
+
+_install_enum4linux_ng() {
+  (_pip_install "enum4linux-ng" && tool_exists enum4linux-ng) && return 0
+
+  local dir="$HOME/.local/share/enum4linux-ng"
+  _git_install "https://github.com/cddmp/enum4linux-ng.git" "$dir" || return 1
+  _pip_install_requirements "$dir/requirements.txt" || true
+  [[ -f "$dir/enum4linux-ng.py" ]] || return 1
+  _make_wrapper "enum4linux-ng" "python3 $dir/enum4linux-ng.py"
+}
+
+_install_joomscan() {
+  (_pkg_install "joomscan" && tool_exists joomscan) && return 0
+
+  local dir="$HOME/.local/share/joomscan"
+  _git_install "https://github.com/OWASP/joomscan.git" "$dir" || return 1
+  [[ -f "$dir/joomscan.pl" ]] || return 1
+  _make_wrapper "joomscan" "perl $dir/joomscan.pl"
+}
+
+_install_jwt_tool() {
+  (_pip_install "jwt_tool" && tool_exists jwt_tool) && return 0
+
+  local dir="$HOME/.local/share/jwt_tool"
+  _git_install "https://github.com/ticarpi/jwt_tool.git" "$dir" || return 1
+  _pip_install_requirements "$dir/requirements.txt" || true
+  [[ -f "$dir/jwt_tool.py" ]] || return 1
+  _make_wrapper "jwt_tool" "python3 $dir/jwt_tool.py"
+  ln -sf "$HOME/.local/bin/jwt_tool" "$HOME/.local/bin/jwt-tool"
+}
+
+_install_patator() {
+  (_pip_install "patator" && tool_exists patator) && return 0
+
+  local dir="$HOME/.local/share/patator"
+  _git_install "https://github.com/lanjelot/patator.git" "$dir" || return 1
+  _pip_install_requirements "$dir/requirements.txt" || true
+  [[ -f "$dir/patator.py" ]] || return 1
+  _make_wrapper "patator" "python3 $dir/patator.py"
+}
+
+_install_spiderfoot() {
+  (_pip_install "spiderfoot" && tool_exists spiderfoot) && return 0
+
+  local dir="$HOME/.local/share/spiderfoot"
+  _git_install "https://github.com/smicallef/spiderfoot.git" "$dir" || return 1
+  _pip_install_requirements "$dir/requirements.txt" || true
+  [[ -f "$dir/sf.py" ]] || return 1
+  _make_wrapper "spiderfoot" "python3 $dir/sf.py"
+}
+
+_install_trufflehog() {
+  (_go_install "github.com/trufflesecurity/trufflehog/v3@latest" && tool_exists trufflehog) && return 0
+
+  local dir="$HOME/.local/share/trufflehog"
+  _git_install "https://github.com/trufflesecurity/trufflehog.git" "$dir" || return 1
+  (cd "$dir" && go build -o "$HOME/.local/bin/trufflehog" .) || return 1
+  go clean -cache -modcache 2>/dev/null || true
+  tool_exists trufflehog
+}
+
+_install_hashcat_utils() {
+  (_pkg_install "hashcat-utils" && tool_exists cap2hccapx) && return 0
+
+  local dir="$HOME/.local/share/hashcat-utils"
+  _git_install "https://github.com/hashcat/hashcat-utils.git" "$dir" || return 1
+  make -C "$dir" >/dev/null || return 1
+  mkdir -p "$HOME/.local/bin"
+  local bin
+  for bin in cap2hccapx combinator len req-exclude req-include; do
+    [[ -x "$dir/bin/${bin}.bin" ]] && ln -sf "$dir/bin/${bin}.bin" "$HOME/.local/bin/$bin"
+  done
+  [[ -x "$dir/bin/combinator.bin" ]] && ln -sf "$dir/bin/combinator.bin" "$HOME/.local/bin/hashcat-utils"
+  tool_exists cap2hccapx
+}
+
+_install_zaproxy() {
+  (_pkg_install "zaproxy" && tool_exists zaproxy) && return 0
+  (_pkg_install "zap" && tool_exists zaproxy) && return 0
+  command -v snap >/dev/null 2>&1 || return 1
+  $SUDO snap install zaproxy --classic >/dev/null 2>&1 || true
+  tool_exists zaproxy
+}
+
+_install_kismet() {
+  (_pkg_install "kismet" && tool_exists kismet) && return 0
+
+  [[ "$PKG_MGR" == "apt" ]] || return 1
+  command -v gpg >/dev/null 2>&1 || return 1
+  command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1 || return 1
+
+  local distro_id="${DISTRO}"
+  local suite=""
+  if [[ -f /etc/os-release ]]; then
+    # shellcheck source=/dev/null
+    source /etc/os-release
+    suite="${VERSION_CODENAME:-}"
+    distro_id="${ID:-$distro_id}"
+  fi
+  [[ "$distro_id" == "kali" ]] && suite="kali"
+  case "$suite" in
+    kali|bookworm|trixie|bionic|focal|jammy|noble|plucky|resolute) ;;
+    *) return 1 ;;
+  esac
+
+  local keyring="/usr/share/keyrings/kismet-archive-keyring.gpg"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "https://www.kismetwireless.net/repos/kismet-release.gpg.key" \
+      | gpg --dearmor | $SUDO tee "$keyring" >/dev/null || return 1
+  else
+    wget -O - "https://www.kismetwireless.net/repos/kismet-release.gpg.key" --quiet \
+      | gpg --dearmor | $SUDO tee "$keyring" >/dev/null || return 1
+  fi
+  echo "deb [signed-by=$keyring] https://www.kismetwireless.net/repos/apt/release/$suite $suite main" \
+    | $SUDO tee /etc/apt/sources.list.d/kismet.list >/dev/null || return 1
+  $SUDO apt-get update -qq >/dev/null || return 1
+  _pkg_install "kismet" || return 1
+
+  local target_user="${SUDO_USER:-${USER:-}}"
+  [[ -n "$target_user" ]] && $SUDO usermod -aG kismet "$target_user" 2>/dev/null || true
+  tool_exists kismet
+}
+
+_install_bulk_extractor() {
+  (_pkg_install "bulk-extractor" && tool_exists bulk_extractor) && return 0
+
+  [[ "$PKG_MGR" == "apt" ]] || return 1
+  local deps=(autoconf automake g++ flex lcov libabsl-dev libexpat1-dev
+    libre2-dev libssl-dev libtool libxml2-utils make pkg-config zlib1g-dev
+    libewf-dev)
+  local dep
+  for dep in "${deps[@]}"; do
+    _pkg_install "$dep" || true
+  done
+
+  local dir="$HOME/.local/share/bulk_extractor"
+  command -v git >/dev/null 2>&1 || return 1
+  rm -rf "$dir" 2>/dev/null || true
+  git clone --recursive --depth 1 --shallow-submodules --quiet \
+    "https://github.com/simsong/bulk_extractor.git" "$dir" 2>/dev/null || return 1
+  (
+    cd "$dir" &&
+    ./bootstrap.sh >/dev/null &&
+    ./configure --prefix="$HOME/.local" --enable-silent-rules >/dev/null &&
+    make -j2 >/dev/null &&
+    make install >/dev/null
+  ) || return 1
+  tool_exists bulk_extractor
+}
+
+_install_impacket_scripts() {
+  (_pkg_install "impacket-scripts" && (tool_exists impacket-psexec || tool_exists psexec.py)) && return 0
+  (_pip_install "impacket" && (tool_exists impacket-psexec || tool_exists psexec.py)) && return 0
+  return 1
+}
+
+_install_searchsploit() {
+  (_pkg_install "exploitdb" && tool_exists searchsploit) && return 0
+
+  local dir="$HOME/.local/share/exploitdb"
+  _git_install "https://gitlab.com/exploit-database/exploitdb.git" "$dir" || return 1
+  [[ -f "$dir/searchsploit" ]] || return 1
+  ln -sf "$dir/searchsploit" "$HOME/.local/bin/searchsploit"
+}
+
+_install_metasploit() {
+  (_pkg_install "metasploit-framework" && tool_exists msfconsole && tool_exists msfvenom) && return 0
+  command -v snap >/dev/null 2>&1 || return 1
+  $SUDO snap install metasploit-framework >/dev/null 2>&1 || true
+  tool_exists msfconsole && tool_exists msfvenom
+}
+
+_install_dotdotpwn() {
+  (_pkg_install "dotdotpwn" && tool_exists dotdotpwn) && return 0
+
+  local dir="$HOME/.local/share/dotdotpwn"
+  _git_install "https://github.com/wireghoul/dotdotpwn.git" "$dir" || return 1
+  [[ -f "$dir/dotdotpwn.pl" ]] || return 1
+  cat > "$HOME/.local/bin/dotdotpwn" <<'WRAP'
+#!/usr/bin/env bash
+export PERL5LIB="$HOME/.local/share/dotdotpwn:$PERL5LIB"
+exec perl "$HOME/.local/share/dotdotpwn/dotdotpwn.pl" "$@"
+WRAP
+  chmod +x "$HOME/.local/bin/dotdotpwn"
+}
+
+_install_xsser() {
+  (_pkg_install "xsser" && tool_exists xsser) && return 0
+
+  local dir="$HOME/.local/share/xsser"
+  _git_install "https://github.com/epsylon/xsser.git" "$dir" || return 1
+  [[ -f "$dir/xsser" ]] || return 1
+  cat > "$HOME/.local/bin/xsser" <<'WRAP'
+#!/usr/bin/env bash
+cd "$HOME/.local/share/xsser" || exit 1
+exec python3 ./xsser "$@"
+WRAP
+  chmod +x "$HOME/.local/bin/xsser"
+}
+
+_install_hashpump() {
+  (_pkg_install "hashpump" && tool_exists hashpump) && return 0
+
+  local dir="$HOME/.local/share/HashPump"
+  _git_install "https://github.com/miekrr/HashPump.git" "$dir" || return 1
+  (
+    cd "$dir" &&
+    g++ -std=c++11 -O2 -Wno-deprecated-declarations -o HashPump \
+      main.cpp Extender.cpp MD4ex.cpp MD5ex.cpp SHA1.cpp SHA256.cpp SHA512ex.cpp -lcrypto
+  ) >/dev/null 2>&1 || return 1
+  ln -sf "$dir/HashPump" "$HOME/.local/bin/hashpump"
+}
+
+_install_libc_database() {
+  local dir="$HOME/.local/share/libc-database"
+  _git_install "https://github.com/niklasb/libc-database.git" "$dir" || return 1
+  [[ -f "$dir/find" ]] || return 1
+  cat > "$HOME/.local/bin/libc-database" <<'WRAP'
+#!/usr/bin/env bash
+cd "$HOME/.local/share/libc-database" || exit 1
+exec ./find "$@"
+WRAP
+  chmod +x "$HOME/.local/bin/libc-database"
+}
+
+_install_massdns() {
+  (_pkg_install "massdns" && tool_exists massdns) && return 0
+
+  local dir="$HOME/.local/share/massdns"
+  _git_install "https://github.com/blechschmidt/massdns.git" "$dir" || return 1
+  make -C "$dir" >/dev/null || return 1
+  [[ -x "$dir/bin/massdns" ]] || return 1
+  ln -sf "$dir/bin/massdns" "$HOME/.local/bin/massdns"
+}
+
+_install_terrascan() {
+  (_pkg_install "terrascan" && tool_exists terrascan) && return 0
+  local dir
+  dir="$(mktemp -d)"
+  curl -fsSL "https://github.com/tenable/terrascan/releases/download/v1.19.9/terrascan_1.19.9_Linux_x86_64.tar.gz" \
+    -o "$dir/terrascan.tar.gz" || return 1
+  tar -xzf "$dir/terrascan.tar.gz" -C "$dir" terrascan || return 1
+  install -m 0755 "$dir/terrascan" "$HOME/.local/bin/terrascan"
+}
+
+_install_clairctl() {
+  curl -fsSL "https://github.com/quay/clair/releases/download/v4.9.0/clairctl-linux-amd64" \
+    -o "$HOME/.local/bin/clairctl" || return 1
+  chmod +x "$HOME/.local/bin/clairctl"
+}
+
+_install_falco() {
+  (_pkg_install "falco" && tool_exists falco) && return 0
+
+  [[ "$PKG_MGR" == "apt" ]] || return 1
+  curl -fsSL "https://falco.org/repo/falcosecurity-packages.asc" \
+    | gpg --dearmor | $SUDO tee /usr/share/keyrings/falco-archive-keyring.gpg >/dev/null || return 1
+  echo "deb [signed-by=/usr/share/keyrings/falco-archive-keyring.gpg] https://download.falco.org/packages/deb stable main" \
+    | $SUDO tee /etc/apt/sources.list.d/falcosecurity.list >/dev/null || return 1
+  $SUDO apt-get update -qq >/dev/null || return 1
+  $SUDO env FALCO_FRONTEND=noninteractive DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    -o Dpkg::Options::="--force-confdef" \
+    -o Dpkg::Options::="--force-confold" \
+    falco >/dev/null || return 1
+  tool_exists falco
+}
+
+_install_kube_hunter() {
+  (_pip_install "kube-hunter" && tool_exists kube-hunter) && return 0
+  return 1
+}
+
+_install_vulnx() {
+  (_pip_install "vulnx" && tool_exists vulnx) && return 0
+
+  local dir="$HOME/.local/share/vulnx"
+  _git_install "https://github.com/anouarbensaad/vulnx.git" "$dir" || return 1
+  [[ -f "$dir/vulnx.py" ]] || return 1
+  cat > "$HOME/.local/bin/vulnx" <<'WRAP'
+#!/usr/bin/env bash
+cd "$HOME/.local/share/vulnx" || exit 1
+exec python3 ./vulnx.py "$@"
+WRAP
+  chmod +x "$HOME/.local/bin/vulnx"
+}
+
+install_custom_tool() {
+  local name="$1"
+  local check_cmd="$2"
+  local description="$3"
+  local installer="$4"
+
+  if tool_exists "$check_cmd"; then
+    skip "$name — already installed ($(command -v "$check_cmd"))"
+    (( COUNT_ALREADY++ )) || true
+    return 0
+  fi
+
+  if [[ "$DRY_RUN" == true ]]; then
+    dry "$name  ($description)"
+    return 0
+  fi
+
+  echo -ne "  ${CYAN}↳${RESET} Installing ${BOLD}$name${RESET} ... "
+  if "$installer" && tool_exists "$check_cmd"; then
+    echo -e "${GREEN}done${RESET}"
+    success "$name installed successfully"
+    (( COUNT_INSTALLED++ )) || true
+    return 0
+  fi
+
+  echo -e "${RED}failed${RESET}"
+  local reason="${FAIL_HINT:-$description failed}"
+  FAIL_HINT=""
+  error "$name: $reason"
+  FAILED_TOOLS+=("$name")
+  FAILED_REASONS["$name"]="$reason"
+  (( COUNT_FAILED++ )) || true
+  return 1
 }
 
 # ─── Master Install Function ──────────────────────────────────────────────────
@@ -796,16 +1154,8 @@ install_network() {
   install_tool_multi "dnsenum" "dnsenum" \
     "pkg:dnsenum"
 
-  # theharvester — pip; git clone fallback
-  if ! tool_exists theHarvester && ! tool_exists theharvester; then
-    FAIL_HINT="pip/pkg failed; try: git clone https://github.com/laramies/theHarvester"
-    install_tool_multi "theharvester" "theHarvester" \
-      "pip:theHarvester" \
-      "pkg:theharvester"
-  else
-    skip "theharvester — already installed"
-    (( COUNT_ALREADY++ )) || true
-  fi
+  # theharvester — pip/pkg or git clone fallback
+  install_custom_tool "theharvester" "theHarvester" "pip/pkg/git fallback" _install_theharvester
 
   # responder — Kali-only pkg; git clone fallback
   if ! tool_exists responder; then
@@ -876,8 +1226,7 @@ install_network() {
   fi
 
   # enum4linux-ng
-  install_tool_multi "enum4linux-ng" "enum4linux-ng" \
-    "pip:enum4linux-ng"
+  install_custom_tool "enum4linux-ng" "enum4linux-ng" "pip/git fallback" _install_enum4linux_ng
 
   # arp-scan
   install_tool_multi "arp-scan" "arp-scan" \
@@ -886,6 +1235,10 @@ install_network() {
   # nbtscan
   install_tool_multi "nbtscan" "nbtscan" \
     "pkg:nbtscan"
+
+  # rpcclient — provided by smbclient on Ubuntu/Debian
+  install_tool_multi "rpcclient" "rpcclient" \
+    "pkg:smbclient"
 
   # smbmap
   install_tool_multi "smbmap" "smbmap" \
@@ -922,6 +1275,10 @@ install_web() {
       "pkg:feroxbuster"
   fi
 
+  # path traversal and XSS scanners
+  install_custom_tool "dotdotpwn" "dotdotpwn" "pkg/git fallback" _install_dotdotpwn
+  install_custom_tool "xsser" "xsser" "pkg/git fallback" _install_xsser
+
   # dirsearch — pip
   install_tool_multi "dirsearch" "dirsearch" \
     "pip:dirsearch" \
@@ -943,6 +1300,10 @@ install_web() {
   install_tool_multi "hakrawler" "hakrawler" \
     "go:github.com/hakluke/hakrawler@latest"
 
+  # gospider — go install
+  install_tool_multi "gospider" "gospider" \
+    "go:github.com/jaeles-project/gospider@latest"
+
   # gau (Get All URLs) — go install
   install_tool_multi "gau" "gau" \
     "go:github.com/lc/gau/v2/cmd/gau@latest"
@@ -950,6 +1311,17 @@ install_web() {
   # waybackurls — go install
   install_tool_multi "waybackurls" "waybackurls" \
     "go:github.com/tomnomnom/waybackurls@latest"
+
+  # URL/API data processing helpers
+  install_tool_multi "qsreplace" "qsreplace" \
+    "go:github.com/tomnomnom/qsreplace@latest"
+  install_tool_multi "uro" "uro" \
+    "pip:uro"
+  install_tool_multi "anew" "anew" \
+    "go:github.com/tomnomnom/anew@latest"
+  install_tool_multi "hurl" "hurl" \
+    "pkg:hurl" \
+    "cargo:hurl"
 
   # nikto — apt/brew
   install_tool_multi "nikto" "nikto" \
@@ -964,6 +1336,9 @@ install_web() {
   install_tool_multi "wpscan" "wpscan" \
     "gem:wpscan" \
     "pkg:wpscan"
+
+  # joomscan — Joomla scanner
+  install_custom_tool "joomscan" "joomscan" "pkg/git fallback" _install_joomscan
 
   # arjun — pip
   install_tool_multi "arjun" "arjun" \
@@ -1004,6 +1379,12 @@ install_web() {
   install_tool_multi "dalfox" "dalfox" \
     "go:github.com/hahwul/dalfox/v2@latest"
 
+  # x8 and jaeles — parameter discovery and web vulnerability scanning
+  install_tool_multi "x8" "x8" \
+    "cargo:x8"
+  install_tool_multi "jaeles" "jaeles" \
+    "go:github.com/jaeles-project/jaeles@latest"
+
   # wafw00f — pip
   install_tool_multi "wafw00f" "wafw00f" \
     "pip:wafw00f"
@@ -1013,9 +1394,8 @@ install_web() {
     "pkg:whatweb" \
     "gem:whatweb"
 
-  # jwt-tool — pip (package is jwt_tool)
-  install_tool_multi "jwt-tool" "jwt_tool" \
-    "pip:jwt_tool"
+  # jwt-tool — pip (package is jwt_tool) or git clone fallback
+  install_custom_tool "jwt-tool" "jwt_tool" "pip/git fallback" _install_jwt_tool
 
   # wfuzz — pip or apt
   install_tool_multi "wfuzz" "wfuzz" \
@@ -1083,6 +1463,11 @@ install_web() {
   # sslyze
   install_tool_multi "sslyze" "sslyze" \
     "pip:sslyze"
+
+  # OWASP ZAP — apt package where available, snap fallback on Ubuntu.
+  install_custom_tool "OWASP ZAP" "zaproxy" "pkg/snap fallback" _install_zaproxy
+
+  skip_manual_install "Burp Suite Community/Professional" "https://portswigger.net/burp/releases"
 }
 
 # ─── Category: Authentication & Password ─────────────────────────────────────
@@ -1101,13 +1486,15 @@ install_auth() {
   install_tool_multi "hashcat" "hashcat" \
     "pkg:hashcat"
 
+  # hashcat-utils — optional helper package on Debian/Kali, source fallback elsewhere
+  install_custom_tool "hashcat-utils" "cap2hccapx" "pkg/source fallback" _install_hashcat_utils
+
   # medusa
   install_tool_multi "medusa" "medusa" \
     "pkg:medusa"
 
   # patator
-  install_tool_multi "patator" "patator" \
-    "pip:patator"
+  install_custom_tool "patator" "patator" "pip/git fallback" _install_patator
 
   # evil-winrm
   install_tool_multi "evil-winrm" "evil-winrm" \
@@ -1117,6 +1504,14 @@ install_auth() {
   install_tool_multi "hashid" "hashid" \
     "pip:hashid" \
     "pkg:hashid"
+}
+
+# ─── Category: Exploitation Frameworks ───────────────────────────────────────
+install_exploitation() {
+  section "💥 Exploitation Frameworks & Exploit Databases"
+
+  install_custom_tool "metasploit-framework" "msfconsole" "pkg/snap fallback" _install_metasploit
+  install_custom_tool "searchsploit" "searchsploit" "pkg/git fallback" _install_searchsploit
 }
 
 # ─── Category: Binary Analysis & Reverse Engineering ─────────────────────────
@@ -1183,8 +1578,13 @@ install_binary() {
   install_tool_multi "upx" "upx" \
     "pkg:upx"
 
-  # pwntools and angr: note they are in requirements.txt
-  info "pwntools & angr — managed via requirements.txt (pip3 install -r requirements.txt)"
+  # pwninit and libc-database — exploit-development helpers
+  install_tool_multi "pwninit" "pwninit" \
+    "cargo:pwninit"
+  install_custom_tool "libc-database" "libc-database" "git wrapper" _install_libc_database
+
+  # pwntools and angr: optional Python deps used by API endpoints.
+  info "pwntools & angr — managed via dependencies/requirements-extra.txt"
 
   # GUI / manual-only tools
   skip_manual_install "Ghidra"       "https://ghidra-sre.org/"
@@ -1200,6 +1600,11 @@ install_cloud() {
   FAIL_HINT="heavy Python deps; try: pip3 install prowler (needs Python 3.9+)"
   install_tool_multi "prowler" "prowler" \
     "pip:prowler"
+
+  # Scout Suite — command is "scout"
+  FAIL_HINT="heavy Python deps; try: pip3 install scoutsuite"
+  install_tool_multi "Scout Suite" "scout" \
+    "pip:scoutsuite"
 
   # trivy — brew or apt (Aqua Security repo on Linux)
   if [[ "$OS" == "macos" ]]; then
@@ -1239,13 +1644,8 @@ install_cloud() {
       "pkg:trivy"
   fi
 
-  # kube-hunter — deprecated; use kube-bench instead
-  if ! tool_exists kube-hunter; then
-    info "kube-hunter — deprecated upstream; use kube-bench instead"
-  else
-    skip "kube-hunter — already installed"
-    (( COUNT_ALREADY++ )) || true
-  fi
+  # kube-hunter — deprecated upstream, but still wired as a compatibility endpoint
+  install_custom_tool "kube-hunter" "kube-hunter" "pip fallback; deprecated upstream" _install_kube_hunter
 
   # kube-bench — download binary
   if ! tool_exists kube-bench; then
@@ -1283,6 +1683,42 @@ install_cloud() {
   FAIL_HINT="pip install requires many deps; try: pip3 install checkov"
   install_tool_multi "checkov" "checkov" \
     "pip:checkov"
+
+  # terrascan — IaC scanner
+  install_custom_tool "terrascan" "terrascan" "pkg/release fallback" _install_terrascan
+
+  # clairctl — Clair API client used by the Clair endpoint
+  install_custom_tool "clairctl" "clairctl" "release binary" _install_clairctl
+
+  # falco — runtime monitor
+  install_custom_tool "falco" "falco" "pkg/official repo fallback" _install_falco
+
+  # pacu — AWS exploitation framework
+  install_tool_multi "pacu" "pacu" \
+    "pip:pacu"
+
+  # CloudMapper — git checkout with a wrapper; dependencies are app-specific.
+  if ! tool_exists cloudmapper; then
+    if [[ "$DRY_RUN" == true ]]; then
+      dry "cloudmapper (via git clone)"
+    else
+      echo -ne "  ${CYAN}↳${RESET} Installing ${BOLD}cloudmapper${RESET} via git clone ... "
+      if _git_install "https://github.com/duo-labs/cloudmapper.git" "$HOME/.local/share/cloudmapper"; then
+        _make_wrapper "cloudmapper" "python3 $HOME/.local/share/cloudmapper/cloudmapper.py"
+        echo -e "${GREEN}done${RESET}"
+        success "cloudmapper wrapper installed"
+        (( COUNT_INSTALLED++ )) || true
+      else
+        echo -e "${RED}failed${RESET}"
+        FAILED_TOOLS+=("cloudmapper")
+        FAILED_REASONS["cloudmapper"]="git clone failed"
+        (( COUNT_FAILED++ )) || true
+      fi
+    fi
+  else
+    skip "cloudmapper — already installed"
+    (( COUNT_ALREADY++ )) || true
+  fi
 
   # aws-cli
   install_tool_multi "aws-cli" "aws" \
@@ -1358,8 +1794,16 @@ install_cloud() {
 
   # docker-bench-security note (scripts, not a binary)
   if ! tool_exists docker-bench-security; then
-    info "docker-bench-security — clone from: https://github.com/docker/docker-bench-security"
-    info "  Run with: sudo sh docker-bench-security.sh"
+    if [[ "$DRY_RUN" == true ]]; then
+      dry "docker-bench-security (via git clone)"
+    elif _git_install "https://github.com/docker/docker-bench-security.git" "$HOME/.local/share/docker-bench-security"; then
+      _make_wrapper "docker-bench-security" "sh $HOME/.local/share/docker-bench-security/docker-bench-security.sh"
+      success "docker-bench-security wrapper installed"
+      (( COUNT_INSTALLED++ )) || true
+    else
+      info "docker-bench-security — clone from: https://github.com/docker/docker-bench-security"
+      info "  Run with: sudo sh docker-bench-security.sh"
+    fi
   fi
 }
 
@@ -1378,6 +1822,9 @@ install_ctf() {
   # steghide
   install_tool_multi "steghide" "steghide" \
     "pkg:steghide"
+
+  # hashpump — hash length extension helper
+  install_custom_tool "hashpump" "hashpump" "pkg/source fallback" _install_hashpump
 
   # zsteg — gem
   install_tool_multi "zsteg" "zsteg" \
@@ -1401,9 +1848,8 @@ install_ctf() {
     "pkg:scalpel"
 
   # bulk-extractor
-  FAIL_HINT="not in Ubuntu 24.04 repos; build from source: github.com/simsong/bulk_extractor"
-  install_tool_multi "bulk-extractor" "bulk_extractor" \
-    "pkg:bulk-extractor"
+  FAIL_HINT="not in default Ubuntu 24.04 repos; source build failed"
+  install_custom_tool "bulk-extractor" "bulk_extractor" "pkg/source fallback" _install_bulk_extractor
 
   # autopsy note (GUI)
   skip_manual_install "Autopsy (GUI)" "https://www.autopsy.com/download/"
@@ -1424,6 +1870,10 @@ install_ctf() {
   install_tool_multi "binwalk" "binwalk" \
     "pip:binwalk" \
     "pkg:binwalk"
+
+  # file — magic-byte identification, used by forensics triage.
+  install_tool_multi "file" "file" \
+    "pkg:file"
 
   # pwntools — managed by requirements.txt
   info "pwntools — managed via requirements.txt"
@@ -1464,6 +1914,10 @@ install_osint() {
   install_tool_multi "sherlock" "sherlock" \
     "pip:sherlock-project"
 
+  # bbot — OSINT recon automation
+  install_tool_multi "bbot" "bbot" \
+    "pip:bbot"
+
   # recon-ng — git clone (complex app, not a simple pip package)
   if ! tool_exists recon-ng; then
     if [[ "$DRY_RUN" == true ]]; then
@@ -1490,22 +1944,38 @@ install_osint() {
   fi
 
   # spiderfoot
-  FAIL_HINT="complex web app; clone github.com/smicallef/spiderfoot"
-  install_tool_multi "spiderfoot" "spiderfoot" \
-    "pip:spiderfoot"
+  install_custom_tool "spiderfoot" "spiderfoot" "pip/git fallback" _install_spiderfoot
 
   # theharvester (may already be installed from network category)
-  install_tool_multi "theharvester" "theHarvester" \
-    "pip:theHarvester" \
-    "pkg:theharvester"
+  install_custom_tool "theharvester" "theHarvester" "pip/pkg/git fallback" _install_theharvester
 
   # social-analyzer
   install_tool_multi "social-analyzer" "social-analyzer" \
     "pip:social-analyzer"
 
   # trufflehog
-  install_tool_multi "trufflehog" "trufflehog" \
-    "go:github.com/trufflesecurity/trufflehog/v3@latest"
+  install_custom_tool "trufflehog" "trufflehog" "go/source fallback" _install_trufflehog
+
+  # subdomain and URL collection helpers
+  install_tool_multi "assetfinder" "assetfinder" \
+    "go:github.com/tomnomnom/assetfinder@latest"
+  install_tool_multi "shuffledns" "shuffledns" \
+    "go:github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest"
+  install_custom_tool "massdns" "massdns" "pkg/source fallback" _install_massdns
+  install_tool_multi "sublist3r" "sublist3r" \
+    "pip:sublist3r"
+  install_tool_multi "waymore" "waymore" \
+    "pip:waymore"
+  install_tool_multi "parsero" "parsero" \
+    "pkg:parsero" \
+    "pip:parsero"
+  install_tool_multi "whois" "whois" \
+    "pkg:whois"
+  install_tool_multi "dig" "dig" \
+    "pkg:dnsutils"
+
+  # vulnerability-intelligence helper
+  install_custom_tool "vulnx" "vulnx" "pip/git fallback" _install_vulnx
 
   # Maltego — GUI, skip
   skip_manual_install "Maltego (GUI)"  "https://www.maltego.com/downloads/"
@@ -1561,6 +2031,88 @@ install_browser() {
       "pkg:chromium-chromedriver" \
       "pkg:chromium-driver"
   fi
+}
+
+# ─── Category: WiFi / Wireless ───────────────────────────────────────────────
+install_wifi() {
+  section "📡 WiFi & Wireless Assessment Tools"
+
+  install_custom_tool "kismet" "kismet" "pkg/official repo fallback" _install_kismet
+
+  install_tool_multi "wireshark" "wireshark" \
+    "pkg:wireshark"
+
+  install_tool_multi "tshark" "tshark" \
+    "pkg:tshark"
+
+  install_tool_multi "tcpdump" "tcpdump" \
+    "pkg:tcpdump"
+
+  # aircrack-ng package provides aircrack-ng, airmon-ng, airodump-ng,
+  # aireplay-ng, airbase-ng, and airdecap-ng.
+  install_tool_multi "aircrack-ng suite" "aircrack-ng" \
+    "pkg:aircrack-ng"
+
+  install_tool_multi "hcxdumptool" "hcxdumptool" \
+    "pkg:hcxdumptool"
+
+  install_tool_multi "hcxpcapngtool" "hcxpcapngtool" \
+    "pkg:hcxtools"
+
+  install_tool_multi "mdk4" "mdk4" \
+    "pkg:mdk4"
+
+  install_tool_multi "wifite" "wifite" \
+    "pkg:wifite" \
+    "pip:wifite"
+
+  install_tool_multi "bettercap" "bettercap" \
+    "pkg:bettercap"
+
+  if ! tool_exists eaphammer; then
+    if [[ "$DRY_RUN" == true ]]; then
+      dry "eaphammer (via git clone)"
+    else
+      echo -ne "  ${CYAN}↳${RESET} Installing ${BOLD}eaphammer${RESET} via git clone ... "
+      if _git_install "https://github.com/s0lst1c3/eaphammer.git" "$HOME/.local/share/eaphammer"; then
+        _make_wrapper "eaphammer" "python3 $HOME/.local/share/eaphammer/eaphammer"
+        echo -e "${GREEN}done${RESET}"
+        success "eaphammer wrapper installed"
+        (( COUNT_INSTALLED++ )) || true
+      else
+        echo -e "${RED}failed${RESET}"
+        FAILED_TOOLS+=("eaphammer")
+        FAILED_REASONS["eaphammer"]="git clone failed"
+        (( COUNT_FAILED++ )) || true
+      fi
+    fi
+  else
+    skip "eaphammer — already installed"
+    (( COUNT_ALREADY++ )) || true
+  fi
+}
+
+# ─── Category: Database Clients ──────────────────────────────────────────────
+install_database() {
+  section "🗄️  Database Client Tools"
+
+  install_tool_multi "MySQL client" "mysql" \
+    "pkg:default-mysql-client" \
+    "pkg:mysql-client"
+
+  install_tool_multi "sqlite3" "sqlite3" \
+    "pkg:sqlite3"
+}
+
+# ─── Category: Active Directory ──────────────────────────────────────────────
+install_active_directory() {
+  section "🪟 Active Directory Tools"
+
+  install_custom_tool "impacket" "psexec.py" "pkg/pip fallback" _install_impacket_scripts
+
+  install_tool_multi "ldapdomaindump" "ldapdomaindump" \
+    "pip:ldapdomaindump" \
+    "pkg:ldapdomaindump"
 }
 
 # ─── Summary ──────────────────────────────────────────────────────────────────
@@ -1625,7 +2177,7 @@ parse_args() {
       --only)
         if [[ -z "${2:-}" ]]; then
           error "--only requires a category name"
-          echo "Valid categories: network, web, auth, binary, cloud, ctf, osint, browser"
+          echo "Valid categories: network, web, auth, exploitation, binary, cloud, ctf, osint, wifi, database, ad, browser"
           exit 1
         fi
         ONLY_CATEGORY="$2"
@@ -1650,10 +2202,10 @@ parse_args() {
   # Validate --only value
   if [[ -n "$ONLY_CATEGORY" ]]; then
     case "$ONLY_CATEGORY" in
-      network|web|auth|binary|cloud|ctf|osint|browser) ;;
+      network|web|auth|exploitation|binary|cloud|ctf|osint|wifi|database|ad|browser) ;;
       *)
         error "Unknown category: '$ONLY_CATEGORY'"
-        echo "Valid categories: network, web, auth, binary, cloud, ctf, osint, browser"
+        echo "Valid categories: network, web, auth, exploitation, binary, cloud, ctf, osint, wifi, database, ad, browser"
         exit 1
         ;;
     esac
@@ -1717,20 +2269,28 @@ main() {
       network) install_network ;;
       web)     install_web     ;;
       auth)    install_auth    ;;
+      exploitation) install_exploitation ;;
       binary)  install_binary  ;;
       cloud)   install_cloud   ;;
       ctf)     install_ctf     ;;
       osint)   install_osint   ;;
+      wifi)    install_wifi    ;;
+      database) install_database ;;
+      ad)      install_active_directory ;;
       browser) install_browser ;;
     esac
   else
     install_network
     install_web
     install_auth
+    install_exploitation
     install_binary
     install_cloud
     install_ctf
     install_osint
+    install_wifi
+    install_database
+    install_active_directory
     install_browser
   fi
 

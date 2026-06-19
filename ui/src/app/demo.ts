@@ -179,7 +179,7 @@ export const DEMO_TOOLS: Tool[] = [
   { name: 'whatweb',        desc: 'Web application fingerprinting — identify CMS, frameworks, and tech stack', category: 'fingerprint', endpoint: '/api/tools/whatweb',      method: 'POST', params: { url: r() },    optional: { additional_args: '' },                                                                          effectiveness: 0.82 },
 
   // ── Active Directory ──
-  { name: 'impacket-scripts', desc: 'Impacket suite — SMB, Kerberos, LDAP, and AD attack scripts',           category: 'active_directory', endpoint: '/api/tools/impacket',   method: 'POST', params: { target: r() }, optional: { script: '', username: '', password: '', additional_args: '' },                                  effectiveness: 0.88 },
+  { name: 'impacket-scripts', desc: 'Impacket suite — SMB, Kerberos, LDAP, and AD attack scripts',           category: 'active_directory', endpoint: '/api/tool/active_directory/impacket',   method: 'POST', params: { target: r() }, optional: { script: '', username: '', password: '', additional_args: '' },                                  effectiveness: 0.88 },
   { name: 'ldapdomaindump',   desc: 'Dump Active Directory info via LDAP authentication',                     category: 'active_directory', endpoint: '/api/tools/ldapdomaindump', method: 'POST', params: { target: r(), username: r(), password: r() }, optional: { additional_args: '' },               effectiveness: 0.82 },
 
   // ── Vulnerability Intelligence ──
@@ -190,7 +190,7 @@ export const DEMO_TOOLS: Tool[] = [
 
   // ── Database ──
   { name: 'mysql',          desc: 'MySQL client — connect and query MySQL/MariaDB databases',                category: 'database', endpoint: '/api/tools/mysql',              method: 'POST', params: { target: r() }, optional: { username: '', password: '', database: '', additional_args: '' },                                effectiveness: 0.75 },
-  { name: 'sqlite3',        desc: 'SQLite3 client — query and inspect SQLite database files',                category: 'database', endpoint: '/api/tools/sqlite3',            method: 'POST', params: { file: r() },    optional: { query: '', additional_args: '' },                                                              effectiveness: 0.75 },
+  { name: 'sqlite3',        desc: 'SQLite3 client — query and inspect SQLite database files',                category: 'database', endpoint: '/api/tools/sqlite',            method: 'POST', params: { file: r() },    optional: { query: '', additional_args: '' },                                                              effectiveness: 0.75 },
 
   // ── API ──
   { name: 'http-framework',  desc: 'Generic HTTP request framework — send raw HTTP requests and inspect responses', category: 'api', endpoint: '/api/tools/http-framework', method: 'POST', params: { url: r() }, optional: { method: 'GET', data: '', headers: '', additional_args: '' },                                    effectiveness: 0.75 },

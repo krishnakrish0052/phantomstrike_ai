@@ -1,8 +1,8 @@
-# PhantomStrike v3.2 GODMODE
+# PhantomStrike v3.3 GODMODE
 
 ### AI-Powered Autonomous Offensive Security Platform
 
-**35 specialized AI agents. 15 attack domains. 12 GODMODE capabilities. 200+ real security tools. Fully autonomous.**
+**35 BaseAgent-backed AI agents. 15 attack domains. v3.3 engine layer. 200+ external security tools. Fully autonomous.**
 
 ---
 
@@ -10,7 +10,7 @@
 [![License](https://img.shields.io/badge/License-AGPLv3-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Kali%20Linux%20Native-red.svg)]()
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)]()
-[![Version](https://img.shields.io/badge/Version-3.2.0-orange.svg)]()
+[![Version](https://img.shields.io/badge/Version-3.3.0-orange.svg)]()
 [![Agents](https://img.shields.io/badge/AI%20Agents-35-brightgreen.svg)]()
 [![Routes](https://img.shields.io/badge/API%20Routes-397%2B-blue.svg)]()
 [![Tools](https://img.shields.io/badge/Security%20Tools-200%2B-darkred.svg)]()
@@ -32,8 +32,8 @@ git clone https://github.com/krishnakrish0052/phantomstrike_ai.git
 cd phantomstrike_ai
 
 # Install & start (native Kali Linux — no Docker required)
-./phantomstrike.sh install     # Auto-detect & install 200+ tools
-./phantomstrike.sh start       # Start server + MCP on localhost:8888
+./phantomstrike.sh install     # Auto-detect & install external tools
+./phantomstrike.sh start       # Start the API server on localhost:8888
 ./phantomstrike.sh health      # Verify everything is running
 
 # Open http://localhost:8888 in your browser
@@ -59,7 +59,7 @@ Connect any MCP-compatible AI client (Claude Desktop, Cursor, VS Code Copilot, O
 }
 ```
 
-Your AI assistant gains access to 150+ security tools as callable functions.
+Your AI assistant gains access to profile-based MCP tools: compact exposes 2 gateway tools, default exposes 129 tools, and full exposes 230 tools.
 
 ---
 
@@ -93,6 +93,8 @@ Your AI assistant gains access to 150+ security tools as callable functions.
 
 ## GODMODE Capabilities (12 Modules — 20,371 Lines)
 
+These v3.2 modules remain the operational foundation in v3.3:
+
 | # | Capability | Purpose |
 |---|-----------|---------|
 | 1 | **Universal Goal Engine** | Pursues any objective relentlessly across ALL 35 agents. Parallel path execution. Never stops until achieved. |
@@ -110,6 +112,19 @@ Your AI assistant gains access to 150+ security tools as callable functions.
 
 ---
 
+## v3.3 Engine Layer
+
+v3.3 adds the `server_core/engine/` layer: 7 core pillars plus 15 higher-order capabilities that can be composed by agents, workflows, and future orchestration passes.
+
+| Area | Modules |
+|------|---------|
+| **7 Pillars** | Self-Writing Code, Digital Twin, Reality Distortion Field, Evolutionary Breeding, Temporal Weaver, Universal Zero-Day Factory, Distributed Consciousness Mesh |
+| **15 Capabilities** | Quantum Attack Search, Predictive Precognition, Memetic Attack, Cross-Reality Bridge, Legal Grayzone, Biological Attack, Infrastructure Genesis, Defender Psychology, Recursive Self-Improve, Universal Protocol Decoder, False Flag Ops, Economic Attack, Swarm Intelligence, Honeypot Ops, Insider Threat |
+| **Runtime Wiring** | All 35 agents are BaseAgent-backed through `agent_registry.py`; legacy agents are wrapped without deleting their existing implementations. |
+| **MCP Wiring** | Exploitation tools now register through the same profile system as the rest of MCP and route HTTP through `ApiClient.safe_get` / `safe_post`. |
+
+---
+
 ## 35 AI Agents
 
 ### Attack Agents
@@ -121,7 +136,7 @@ TraceBuster (identity protection), Decoy (misdirection), OPSEC (pre-execution au
 ### Specialist Agents
 Reverse Engineering, Auto Fixer (plan→approve→fix→verify), Bug Bounty, Social Engineering, Supply Chain
 
-### Domain Agents (New in v3.2)
+### Domain Agents (Added in v3.2, carried forward in v3.3)
 IoT, SCADA/ICS, Automotive, Satellite/Aerospace, Blockchain/DeFi, AI/ML Exploitation, Mobile (iOS/Android), Telecom (SS7/5G), Physical Access, Dark Web Operations, Drone/UAV, Nuclear-Grade OpSec
 
 ---
@@ -150,6 +165,8 @@ IoT, SCADA/ICS, Automotive, Satellite/Aerospace, Blockchain/DeFi, AI/ML Exploita
 
 ## Tool Arsenal (200+)
 
+The installer targets the broad Kali/security-tool arsenal. The runtime REST registry currently tracks 158 logical tools with unique endpoints; health checks validate 157 core tool records and mark all essential tools available in a fully prepared local environment.
+
 | Category | Tools |
 |----------|-------|
 | **Network** | nmap, masscan, rustscan, autorecon, arp-scan |
@@ -170,16 +187,19 @@ IoT, SCADA/ICS, Automotive, Satellite/Aerospace, Blockchain/DeFi, AI/ML Exploita
 ## Features
 
 - **35 autonomous AI agents** that think, adapt, and coordinate like elite human hackers
+- **BaseAgent-backed runtime fleet** — 35/35 runtime agents share common lifecycle/status/capability contracts
 - **Universal Goal Engine** — one prompt, autonomous execution, never stops until achieved
 - **Hive Mind v3** — shared knowledge base with event bus, reactive agent triggering, selective context
+- **v3.3 engine layer** — 7 pillars and 15 advanced capabilities under `server_core/engine/`
 - **12 GODMODE capabilities** — from EGATS attack tree search to GAN traffic mimicry
 - **200+ real Kali Linux tools** — auto-installed and orchestrated by AI agents
+- **158 logical REST tool registry entries** — duplicate endpoint mappings removed
 - **Phantom Proxy** — undetectable operations via rotating IPs, JA4 spoofing, protocol camouflage
 - **Defense Shield** — real-time honeypot detection, counter-surveillance, emergency termination
 - **397+ REST API routes** — complete programmatic access
 - **29 database tables** — persistent mission tracking, agent learning, findings storage
 - **Full React UI** — Proxy Control, Defense Monitor, Mission Console, Exploit Generator, HTTP Framework, Browser Agent, Attack Chains, Bug Bounty
-- **MCP protocol** — plug into Claude Desktop, Cursor, VS Code Copilot, any MCP client
+- **MCP protocol** — compact/default/full profiles expose 2/129/230 callable tools
 - **Native Kali deployment** — one shell script, auto-installs missing tools, no Docker required
 
 ---
@@ -257,7 +277,7 @@ PhantomStrike is **100% open-source** under the [AGPLv3 License](LICENSE).
 
 ```bash
 ./phantomstrike.sh install    # Auto-detect Kali, install 200+ tools
-./phantomstrike.sh start      # Start Flask server + MCP
+./phantomstrike.sh start      # Start Flask API server
 ./phantomstrike.sh stop       # Graceful shutdown
 ./phantomstrike.sh update     # Git pull + reinstall dependencies
 ./phantomstrike.sh tools      # List all tools with install status

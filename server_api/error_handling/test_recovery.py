@@ -58,3 +58,6 @@ def test_error_recovery():
     except Exception as e:
         logger.error(f"Error testing recovery system: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+test_error_recovery.__test__ = False

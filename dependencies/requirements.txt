@@ -12,3 +12,5 @@ aiohttp>=3.8.0,<4.0.0           # Async HTTP (aiohttp import)
 h2>=4.0.0,<5.0.0                # HTTP/2 library used by h2csmuggler plugin runtime
 PyMySQL>=1.1.2,<2.0.0      # MySQL database connector (conditionally used for database interactions)
 wcwidth>=0.2.5,<1.0.0          # Terminal text width calculation (wcwidth import)
+paramiko>=3.4.0,<4.0.0         # SSH plugin backend
+pytest>=8.0.0,<10.0.0          # Project test runner

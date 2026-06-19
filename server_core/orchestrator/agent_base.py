@@ -1,7 +1,7 @@
 """
 PhantomStrike v3.0 — Base Agent class.
 
-All 23 agents in the PhantomStrike fleet inherit from BaseAgent. It provides
+All 35 agents in the PhantomStrike fleet are BaseAgent-backed. It provides
 the core think/act/observe loop primitives, capability registration, status
 reporting, and optional LLM-backed reasoning with pattern-matching fallback.
 """
@@ -44,6 +44,41 @@ CAPABILITY_LIBRARY: Dict[str, List[str]] = {
   "coordinator":      ["mission_plan", "task_assign", "result_aggregate", "risk_assess", "attack_path_calculate"],
   "reporting":        ["finding_format", "evidence_bundle", "executive_summary", "remediation_advice"],
 }
+
+# Agent-type aliases used by the orchestrator registry. Newer specialised
+# agents may override these entries at import time with richer catalogues.
+CAPABILITY_LIBRARY.update({
+  "recon":         CAPABILITY_LIBRARY["recon_passive"] + CAPABILITY_LIBRARY["recon_active"] + CAPABILITY_LIBRARY["osint"],
+  "vuln":          ["cve_match", "cvss_score", "vulnerability_chain", "nuclei", "nikto", "wpscan", "sqlmap", "dalfox"],
+  "exploit":       CAPABILITY_LIBRARY["web_exploit"] + CAPABILITY_LIBRARY["network_exploit"] + ["generate_exploit", "execute_exploit_live", "verify_exploit"],
+  "post_exploit":  CAPABILITY_LIBRARY["discovery"] + CAPABILITY_LIBRARY["collection"],
+  "cleanup":       CAPABILITY_LIBRARY["defense_evasion"],
+  "cred_access":   CAPABILITY_LIBRARY["credential_access"],
+  "webapp":        CAPABILITY_LIBRARY["web_exploit"],
+  "emergency":     ["kill_switch", "session_freeze", "evidence_quarantine", "risk_assess"],
+  "opsec":         ["risk_assess", "evasion_policy_check", "signature_audit", "safe_alternative"],
+  "decoy":         ["decoy_deploy", "false_signal", "misdirection_path", "alert_inject"],
+  "counter_surveillance": ["threat_feed_check", "tracing_detect", "exposure_score", "risk_assess"],
+  "reverse_trace": ["attribution_trace", "source_correlation", "evidence_bundle", "risk_assess"],
+  "trace_buster":  ["identity_rotate", "traffic_compartment", "exit_path_rotate", "evasion_policy_check"],
+  "supply_chain":  ["dependency_scan", "confusion_check", "ci_cd_audit", "secrets_scan"],
+  "social_eng":    ["profile_research", "pretext_plan", "awareness_report", "scope_check"],
+  "bug_bounty":    ["scope_parse", "recon_plan", "duplicate_check", "finding_format"],
+  "auto_fixer":    ["fix_plan", "patch_apply", "test_run", "verification_report"],
+  "reverse_engineering": ["binary_triage", "strings_extract", "decompile_hint", "vulnerability_pattern"],
+  "iot":           ["mqtt_probe", "ble_scan", "zigbee_enum", "firmware_extract"],
+  "scada":         ["modbus_enum", "s7comm_probe", "dnp3_check", "ics_safety_audit"],
+  "automotive":    ["can_enum", "obd_probe", "ecu_fingerprint", "firmware_extract"],
+  "satellite":     ["sdr_scan", "telemetry_decode", "ground_station_audit", "signal_analysis"],
+  "blockchain":    ["smart_contract_scan", "defi_risk_model", "wallet_trace", "mev_analysis"],
+  "ai_exploit":    ["prompt_injection_test", "model_extraction_check", "adversarial_probe", "ai_risk_report"],
+  "mobile":        ["apk_static_scan", "ipa_static_scan", "frida_probe", "mobile_tls_check"],
+  "telecom":       ["ss7_audit", "diameter_check", "sip_enum", "ims_risk_assess"],
+  "physical":      ["rfid_audit", "badge_risk_check", "site_walkthrough", "physical_report"],
+  "darkweb":       ["tor_crawl", "credential_market_check", "threat_actor_profile", "evidence_bundle"],
+  "drone":         ["mavlink_probe", "gps_signal_check", "fpv_scan", "drone_risk_report"],
+  "nuclear_opsec": ["traffic_entropy_audit", "stealth_proof", "compartment_check", "risk_assess"],
+})
 
 
 # ---------------------------------------------------------------------------

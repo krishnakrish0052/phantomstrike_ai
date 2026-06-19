@@ -110,7 +110,7 @@ def ransomware_track():
     return jsonify({"error": str(e), "success": False}), 500
 
 
-@api_dark_web_bp.route("/api/tools/crypto-trace", methods=["POST"])
+@api_dark_web_bp.route("/api/dark-web/crypto-trace", methods=["POST"])
 def crypto_trace():
   """Trace cryptocurrency addresses."""
   try:
@@ -133,7 +133,7 @@ def crypto_trace():
     return jsonify({"error": str(e), "success": False}), 500
 
 
-@api_dark_web_bp.route("/api/tools/threat-actor", methods=["POST"])
+@api_dark_web_bp.route("/api/dark-web/threat-actor", methods=["POST"])
 def threat_actor():
   """Profile threat actors from OSINT + dark web sources."""
   try:
@@ -151,7 +151,7 @@ def threat_actor():
     return jsonify({"error": str(e), "success": False}), 500
 
 
-@api_dark_web_bp.route("/api/tools/c2-map", methods=["POST"])
+@api_dark_web_bp.route("/api/dark-web/c2-map", methods=["POST"])
 def c2_map():
   """Map C2 infrastructure for an IP or domain."""
   try:

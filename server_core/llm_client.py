@@ -493,11 +493,6 @@ class LLMClient:
     self._backend: Any = None
     self._init_error: str = ""
 
-    # Only initialise a backend when AI mode is explicitly enabled..
-    import os as _os
-    if _os.environ.get("PHANTOMSTRIKE_LLM_WARMUP") != "1":
-      return
-
     provider = _cfg("PHANTOMSTRIKE_LLM_PROVIDER").lower()
     model = _cfg("PHANTOMSTRIKE_LLM_MODEL")
     base_url = _cfg("PHANTOMSTRIKE_LLM_URL")
@@ -506,7 +501,7 @@ class LLMClient:
     think_raw = _cfg("PHANTOMSTRIKE_LLM_THINK")
     think = str(think_raw).lower() in ("1", "true", "yes")
     num_ctx = int(_cfg("PHANTOMSTRIKE_LLM_NUM_CTX") or 4096)
-    self._num_ctx_analyse = int(_cfg("PHANTOMSTRIKE_LLM_NUM_CTX_ANALYSE") or 16384)
+    self._num_ctx_analyze = int(_cfg("PHANTOMSTRIKE_LLM_NUM_CTX_ANALYZE") or 16384)
 
     try:
       if provider == "ollama":
@@ -536,8 +531,8 @@ class LLMClient:
     return self._backend.model if self._backend else ""
 
   @property
-  def num_ctx_analyse(self) -> int:
-    return getattr(self, '_num_ctx_analyse', 16384)
+  def num_ctx_analyze(self) -> int:
+    return getattr(self, '_num_ctx_analyze', 16384)
 
   def is_available(self) -> bool:
     """Return True if the LLM backend is reachable. Never raises."""

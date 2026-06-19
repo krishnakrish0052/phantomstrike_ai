@@ -5,13 +5,13 @@ BUILT_IN_TOOLS = ["jwt-analyzer", "api-schema-analyzer", "graphql-scanner",
                   "technology-detection", "ai_analyze_session"]
 
 # Tools that require dpkg check (Debian-based systems)
-REQUIRE_DPKG_CHECK = ["hashcat-utils", "sleuthkit", "impacket-scripts"]
+REQUIRE_DPKG_CHECK = ["sleuthkit"]
 
 # Tools that require pip check (Python packages)
-REQUIRE_PIP_CHECK = ["pwntools", "one-gadget"]
+REQUIRE_PIP_CHECK = ["angr", "pwntools"]
 
 # Tools that require gem check (Ruby packages)
-REQUIRE_GEM_CHECK = ["zsteg"]
+REQUIRE_GEM_CHECK = ["one_gadget", "zsteg"]
 
 # Tools that require cargo check (Rust packages)
 REQUIRE_CARGO_CHECK = ["pwninit", "x8"]
@@ -20,9 +20,20 @@ REQUIRE_GO_CHECK = ["httpx"]
 
 # Binary name overrides for tools where the executable name differs from the tool name
 BINARY_NAME_OVERRIDES = {
+    "airbase-ng": "airbase-ng",
+    "aircrack-ng": "aircrack-ng",
+    "airdecap-ng": "airdecap-ng",
+    "aireplay-ng": "aireplay-ng",
+    "airmon-ng": "airmon-ng",
+    "airodump-ng": "airodump-ng",
+    "impacket-scripts": "psexec.py",
+    "one-gadget": "one_gadget",
     "scout-suite": "scout",
+    "testssl": "testssl.sh",
     "volatility": "vol",
-    "hurl": "hURL",
+    "hurl": "hurl",
+    "hashcat-utils": "cap2hccapx",
+    "clair": "clairctl",
 }
 
 # Comprehensive list of tools categorized by functionality for health monitoring and availability checks

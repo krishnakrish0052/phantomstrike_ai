@@ -1,5 +1,8 @@
 # PhantomStrike v3.2 GODMODE — Complete Architecture
 
+> Historical snapshot. The current active architecture is PhantomStrike v3.3;
+> see `docs/ARCHITECTURE.md` and `docs/ARCHITECTURE_v3.3.md`.
+
 ## Version History
 
 | Version | Date | Key Deliverables |

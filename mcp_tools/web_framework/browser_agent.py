@@ -3,9 +3,15 @@
 from typing import Dict, Any, Optional
 import asyncio
 
+def _available_tool_name(mcp, default_name: str, alias_name: str) -> str:
+    provider = getattr(mcp, "_local_provider", None)
+    components = getattr(provider, "_components", {})
+    return alias_name if f"tool:{default_name}@" in components else default_name
+
+
 def register_browser_agent_tool(mcp, api_client, logger, CliColors):
 
-    @mcp.tool()
+    @mcp.tool(name=_available_tool_name(mcp, "browser_agent_inspect", "web_framework_browser_agent_inspect"))
     async def browser_agent_inspect(url: str, headless: bool = True, wait_time: int = 5,
                              action: str = "navigate", proxy_port: Optional[int] = None, active_tests: bool = False) -> Dict[str, Any]:
         """

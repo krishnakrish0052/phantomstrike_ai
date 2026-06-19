@@ -562,7 +562,7 @@ TOOLS: Dict[str, dict] = {
     },
     "impacket-ad-enum": {
         "desc": "Convenience wrapper for Active Directory enumeration Impacket scripts such as GetADUsers, GetNPUsers, GetUserSPNs, lookupsid, and findDelegation",
-        "endpoint": "/api/tool/active_directory/impacket",
+        "endpoint": "/api/tool/active_directory/impacket/ad-enum",
         "method": "POST",
         "category": "active_directory",
         "params": {
@@ -586,7 +586,7 @@ TOOLS: Dict[str, dict] = {
     },
     "impacket-remote-exec": {
         "desc": "Convenience wrapper for remote execution Impacket scripts such as psexec, wmiexec, smbexec, dcomexec, and atexec",
-        "endpoint": "/api/tool/active_directory/impacket",
+        "endpoint": "/api/tool/active_directory/impacket/remote-exec",
         "method": "POST",
         "category": "lateral_movement",
         "params": {
@@ -755,7 +755,7 @@ TOOLS: Dict[str, dict] = {
     },
     "sublist3r": {
         "desc": "Subdomain enumeration using OSINT sources",
-        "endpoint": "/api/osint/tools/sublist3r",
+        "endpoint": "/api/tools/osint/sublist3r",
         "method": "POST",
         "category": "osint",
         "params": {"domain": {"required": True}},
@@ -1573,23 +1573,23 @@ TOOLS: Dict[str, dict] = {
 
     # ---- Password ----
     "hashcat-utils": {
-        "desc": "Hashcat utility tools — cap2hccapx, combinator, expander, etc.",
-        "endpoint": "/api/tools/hashcat",
+        "desc": "Hashcat utility tools — cap2hccapx, combinator, len, req-exclude, req-include",
+        "endpoint": "/api/tools/hashcat-utils",
         "method": "POST",
         "category": "brute_force",
-        "params": {"hash_file": {"required": True}, "hash_type": {"required": True}},
-        "optional": {"attack_mode": "0", "wordlist": "/usr/share/wordlists/rockyou.txt", "additional_args": ""},
+        "params": {"utility": {"required": True}, "input_file": {"required": True}},
+        "optional": {"output_file": "", "left_file": "", "right_file": "", "additional_args": ""},
         "effectiveness": 0.80,
     },
 
     # ---- Forensics ----
     "vol": {
-        "desc": "Volatility memory forensics (vol shorthand) — analyse RAM dumps",
-        "endpoint": "/api/tools/volatility",
+        "desc": "Volatility3 memory forensics (vol shorthand) — analyze RAM dumps",
+        "endpoint": "/api/tools/volatility3",
         "method": "POST",
         "category": "forensics",
         "params": {"memory_file": {"required": True}, "plugin": {"required": True}},
-        "optional": {"profile": "", "additional_args": ""},
+        "optional": {"output_file": "", "additional_args": ""},
         "effectiveness": 0.88,
     },
     "photorec": {
@@ -1796,7 +1796,7 @@ TOOLS: Dict[str, dict] = {
     },
     "sqlite3": {
         "desc": "SQLite command-line client for database management and querying",
-        "endpoint": "/api/tools/sqlite3",
+        "endpoint": "/api/tools/sqlite",
         "method": "POST",
         "category": "database",
         "params": {"db_path": {"required": True}, "query": {"required": True}},

@@ -37,7 +37,7 @@ from .specialist_agents.bug_bounty_agent import BugBountyAgent
 from .specialist_agents.auto_fixer_agent import AutoFixerAgent
 from .specialist_agents.reverse_engineering_agent import ReverseEngineeringAgent
 
-# ── Domain agents (v3.2) ──
+# ── Domain agents (v3.2+) ──
 from .domain_agents.iot_agent import IoTAgent
 from .domain_agents.scada_agent import SCADAAgent
 from .domain_agents.automotive_agent import AutomotiveAgent
@@ -90,7 +90,7 @@ __all__ = [
     "BugBountyAgent",
     "AutoFixerAgent",
     "ReverseEngineeringAgent",
-    # Domain (v3.2)
+    # Domain (v3.2+)
     "IoTAgent",
     "SCADAAgent",
     "AutomotiveAgent",

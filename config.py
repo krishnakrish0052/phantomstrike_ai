@@ -2,7 +2,7 @@
 
 _config = {
     "APP_NAME": "PhantomStrike",
-    "VERSION": "2.0.0",
+    "VERSION": "3.3.0",
     "DATA_DIR_NAME": ".phantomstrike_data",  # Root data directory name (relative to cwd, override with PHANTOMSTRIKE_DATA_DIR env var)
     "COMMAND_TIMEOUT": 500,
     "REQUEST_TIMEOUT": 30,
@@ -46,7 +46,7 @@ _config = {
     "PHANTOMSTRIKE_LLM_MAX_LOOPS": 9,
     "PHANTOMSTRIKE_LLM_THINK":    False,                            # Enable model thinking/reasoning (Ollama only, e.g. Qwen3)
     "PHANTOMSTRIKE_LLM_NUM_CTX":  4096,                             # Context window size for chat (Ollama only)
-    "PHANTOMSTRIKE_LLM_NUM_CTX_ANALYSE": 16384,                     # Context window size for AI Analyse / AI Report (Ollama only)
+    "PHANTOMSTRIKE_LLM_NUM_CTX_ANALYZE": 16384,                     # Context window size for AI Analyze / AI Report (Ollama only)
 
     # ── Chat widget ───────────────────────────────────────────────────────────
     "CHAT_PERSONALITY": "phantomstrike",  # active personality preset id (see server_core/intelligence/chat_personalities.py)

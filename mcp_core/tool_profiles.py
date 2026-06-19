@@ -2,15 +2,21 @@ from mcp_core.cli_colors import CliColors
 from mcp_tools import *
 
 def resolve_profile_dependencies(profiles):
-    resolved = set()
-    to_process = list(profiles)
-    while to_process:
-        profile = to_process.pop()
-        if profile not in resolved:
-            resolved.add(profile)
-            deps = PROFILE_DEPENDENCIES.get(profile, [])
-            to_process.extend([dep for dep in deps if dep not in resolved])
-    return list(resolved)
+    resolved = []
+    seen = set()
+
+    def visit(profile):
+        if profile in seen:
+            return
+        seen.add(profile)
+        for dependency in PROFILE_DEPENDENCIES.get(profile, []):
+            visit(dependency)
+        resolved.append(profile)
+
+    for profile in profiles:
+        visit(profile)
+
+    return resolved
 
 TOOL_PROFILES = {
 
@@ -234,6 +240,11 @@ TOOL_PROFILES = {
         lambda mcp, client, logger: register_exploit_db_tool(mcp, client, logger), #aka. exploit-db
     ],
 
+    #Tools for generated exploit execution, verification, and web exploitation helpers.
+    "exploitation": [
+        lambda mcp, client, logger: register_exploitation_tools(mcp, client, logger),
+    ],
+
     #Tools for URL discovery and reconnaissance (e.g., Gau, Waybackurls, Waymore).
     "url_recon": [
         lambda mcp, client, logger: register_gau_tool(mcp, client, logger),
@@ -408,6 +419,7 @@ DEFAULT_PROFILE = [
     "web_scan",
     "vuln_scan",
     "exploit_framework",
+    "exploitation",
     "password_cracking",
     "param_discovery",
     "url_recon",

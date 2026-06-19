@@ -1,5 +1,6 @@
 import time
 import logging
+import os
 import re
 import threading
 from typing import Any, Dict
@@ -111,6 +112,22 @@ def initialize_update_status_check():
         _startup_update_check_done = True
 
     local_version = config_core.get("VERSION", "unknown")
+    update_check_enabled = os.environ.get("PHANTOMSTRIKE_UPDATE_CHECK", "").lower() in ("1", "true", "yes", "y")
+    if not update_check_enabled:
+        status = {
+            "current_version": local_version,
+            "latest_version": local_version,
+            "update_available": False,
+            "checked_at": None,
+            "source": "disabled",
+            "error": None,
+        }
+        with _update_cache_lock:
+            _update_cache["for_version"] = local_version
+            _update_cache["result"] = status
+        logger.info("Version update check skipped; set PHANTOMSTRIKE_UPDATE_CHECK=1 to enable it.")
+        return
+
     status = _run_update_check(local_version)
     if status.get("error"):
         logger.warning("Version update check failed at startup: %s", status.get("error"))

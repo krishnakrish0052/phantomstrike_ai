@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PhantomStrike v3.2 — main entrypoint
+# PhantomStrike v3.3 — main entrypoint
 #
 # Usage:
 #   ./phantomstrike.sh install                # Full auto-install: detect OS, install ALL tools
-#   ./phantomstrike.sh start                  # Start Flask server + MCP server (recommended)
+#   ./phantomstrike.sh start                  # Start API server in background
 #   ./phantomstrike.sh stop                   # Graceful shutdown
 #   ./phantomstrike.sh update                 # Git pull + reinstall deps
 #   ./phantomstrike.sh tools                  # List all tools with install status
@@ -31,6 +31,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="${ROOT_DIR}/phantomstrike-env"
 PYTHON_BIN="python3"
 GIT_TOOLS_DIR="${ROOT_DIR}/git_tools"
+SERVER_PID_FILE="${ROOT_DIR}/.phantomstrike_server.pid"
+SERVER_LOG_FILE="${ROOT_DIR}/phantomstrike.log"
 
 # --- install flags ---
 INSTALL_TOOLS=false
@@ -53,11 +55,39 @@ RUN_INSTALL=false
 RUN_STOP=false
 RUN_TOOLS=false
 RUN_HEALTH=false
+RUN_DAEMON_START=false
 SERVER_URL="http://127.0.0.1:8888"
 PROFILE="default"
 
 # --- do any setup at all? ---
 DO_SETUP=false
+
+augment_runtime_path() {
+  local extra_paths=(
+    "$HOME/.local/bin"
+    "$HOME/go/bin"
+    "$HOME/.cargo/bin"
+    "/snap/bin"
+  )
+
+  if command -v ruby >/dev/null 2>&1; then
+    local gem_dir
+    gem_dir="$(ruby -e 'print Gem.user_dir' 2>/dev/null || true)"
+    [[ -n "$gem_dir" ]] && extra_paths+=("$gem_dir/bin")
+  fi
+
+  local path_entry
+  for path_entry in "${extra_paths[@]}"; do
+    [[ -d "$path_entry" ]] || continue
+    case ":$PATH:" in
+      *":$path_entry:"*) ;;
+      *) PATH="$path_entry:$PATH" ;;
+    esac
+  done
+  export PATH
+}
+
+augment_runtime_path
 
 # ---------------------------------------------------------------------------
 # Setup functions (formerly install.sh)
@@ -228,7 +258,7 @@ run_setup() {
 }
 
 # ---------------------------------------------------------------------------
-# v3.2 GODMODE Functions
+# v3.3 GODMODE Functions
 # ---------------------------------------------------------------------------
 
 # check_tool — check if a tool is installed (search PATH + common locations)
@@ -242,6 +272,11 @@ check_tool() {
   local search_dirs=(/usr/bin /usr/sbin /usr/local/bin /opt /snap/bin /usr/lib \
     "$HOME/.local/bin" "$HOME/go/bin" "$HOME/.cargo/bin" \
     "$HOME/.gem/ruby" "$HOME/.local/share")
+  if command -v ruby >/dev/null 2>&1; then
+    local gem_dir
+    gem_dir="$(ruby -e 'print Gem.user_dir' 2>/dev/null || true)"
+    [[ -n "$gem_dir" ]] && search_dirs+=("$gem_dir/bin")
+  fi
   for dir in "${search_dirs[@]}"; do
     if [[ -x "${dir}/${tool}" ]]; then
       return 0
@@ -394,7 +429,7 @@ full_auto_install() {
 
   echo ""
   echo "=============================================="
-  echo "  PhantomStrike v3.2 — Full Auto Install"
+  echo "  PhantomStrike v3.3 — Full Auto Install"
   echo "=============================================="
   echo ""
 
@@ -516,10 +551,76 @@ stop_server() {
   fi
 
   if [[ $killed -gt 0 ]]; then
+    rm -f "${SERVER_PID_FILE}"
     echo -e "${GREEN}[✓]${RESET} Stopped PhantomStrike. Clean shutdown."
   else
     echo -e "${YELLOW}[i]${RESET} No running PhantomStrike processes found."
   fi
+}
+
+# start_server_daemon — Start the API server and return once it answers /ping
+start_server_daemon() {
+  local GREEN='\033[0;32m'
+  local RED='\033[0;31m'
+  local YELLOW='\033[1;33m'
+  local RESET='\033[0m'
+
+  local curl_opts=(-s --connect-timeout 2)
+  if [[ -n "${API_TOKEN:-}" ]]; then
+    curl_opts+=(-H "Authorization: Bearer ${API_TOKEN}")
+  fi
+
+  if curl "${curl_opts[@]}" "${SERVER_URL}/ping" >/dev/null 2>&1; then
+    echo -e "${GREEN}[✓]${RESET} PhantomStrike API is already running at ${SERVER_URL}"
+    return 0
+  fi
+
+  if [[ -f "${SERVER_PID_FILE}" ]]; then
+    local existing_pid
+    existing_pid="$(cat "${SERVER_PID_FILE}" 2>/dev/null || true)"
+    if [[ -n "${existing_pid}" ]] && kill -0 "${existing_pid}" 2>/dev/null; then
+      echo -e "${YELLOW}[!]${RESET} PID file exists for PID ${existing_pid}, but ${SERVER_URL}/ping is not responding."
+      echo "    Run: ./phantomstrike.sh stop"
+      return 1
+    fi
+    rm -f "${SERVER_PID_FILE}"
+  fi
+
+  echo "Starting API server in background..."
+  if command -v setsid >/dev/null 2>&1; then
+    setsid "${VENV_DIR}/bin/python3" "${ROOT_DIR}/phantomstrike_server.py" \
+      >> "${SERVER_LOG_FILE}" 2>&1 < /dev/null &
+  else
+    nohup "${VENV_DIR}/bin/python3" "${ROOT_DIR}/phantomstrike_server.py" \
+      >> "${SERVER_LOG_FILE}" 2>&1 < /dev/null &
+  fi
+  local server_pid=$!
+  echo "${server_pid}" > "${SERVER_PID_FILE}"
+
+  local attempt
+  for attempt in {1..30}; do
+    if curl "${curl_opts[@]}" "${SERVER_URL}/ping" >/dev/null 2>&1; then
+      echo -e "${GREEN}[✓]${RESET} API server started at ${SERVER_URL} (PID ${server_pid})"
+      echo "    Log: ${SERVER_LOG_FILE}"
+      echo "    MCP clients can connect with: ./phantomstrike.sh --mcp --server-url ${SERVER_URL}"
+      return 0
+    fi
+    if ! kill -0 "${server_pid}" 2>/dev/null; then
+      echo -e "${RED}[✗]${RESET} API server exited during startup."
+      echo "    Last log lines:"
+      tail -n 40 "${SERVER_LOG_FILE}" 2>/dev/null || true
+      rm -f "${SERVER_PID_FILE}"
+      return 1
+    fi
+    sleep 1
+  done
+
+  echo -e "${RED}[✗]${RESET} API server did not answer ${SERVER_URL}/ping within 30 seconds."
+  echo "    Last log lines:"
+  tail -n 40 "${SERVER_LOG_FILE}" 2>/dev/null || true
+  rm -f "${SERVER_PID_FILE}"
+  kill "${server_pid}" >/dev/null 2>&1 || true
+  return 1
 }
 
 # list_all_tools — Read from tools_list.txt and check each with status
@@ -528,7 +629,7 @@ list_all_tools() {
 
   echo ""
   echo "=============================================="
-  echo "  PhantomStrike v3.2 — Tool Inventory"
+  echo "  PhantomStrike v3.3 — Tool Inventory"
   echo "=============================================="
   echo ""
 
@@ -621,13 +722,17 @@ health_check() {
 
   echo ""
   echo "=============================================="
-  echo "  PhantomStrike v3.2 — Health Check"
+  echo "  PhantomStrike v3.3 — Health Check"
   echo "=============================================="
   echo ""
 
   # Check if server is running
   echo -ne "  Server (${server_url}) ... "
-  if curl -s --connect-timeout 3 "${server_url}/health" >/dev/null 2>&1; then
+  local initial_curl_opts=(-s --connect-timeout 3)
+  if [[ -n "$token" ]]; then
+    initial_curl_opts+=(-H "Authorization: Bearer ${token}")
+  fi
+  if curl "${initial_curl_opts[@]}" "${server_url}/health" >/dev/null 2>&1; then
     echo -e "${GREEN}UP${RESET}"
   else
     echo -e "${RED}DOWN${RESET}"
@@ -773,8 +878,8 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     start)
+      RUN_DAEMON_START=true
       RUN_SERVER=true
-      RUN_MCP=true
       shift
       ;;
     stop)
@@ -796,7 +901,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -h|--help)
-      echo "PhantomStrike v3.2"
+      echo "PhantomStrike v3.3"
       echo ""
       echo "Setup:"
       echo "  install                 Full auto-install: detect OS, install ALL tools"
@@ -812,7 +917,7 @@ while [[ $# -gt 0 ]]; do
       echo "  -ai-small               Install Ollama + pull 4b model (~2.5 GB RAM)"
       echo ""
       echo "Run:"
-      echo "  start                   Start Flask server + MCP server (recommended)"
+      echo "  start                   Start the API server in background"
       echo "  stop                    Graceful shutdown of all PhantomStrike processes"
       echo "  --server                Start the PhantomStrike API server"
       echo "  --mcp                   Start the MCP client (default when no flags given)"
@@ -827,7 +932,7 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "Examples:"
       echo "  ./phantomstrike.sh install            # first-time setup (auto-detect + install everything)"
-      echo "  ./phantomstrike.sh start              # start server + MCP (daily driver)"
+      echo "  ./phantomstrike.sh start              # start API server in background"
       echo "  ./phantomstrike.sh stop               # graceful shutdown"
       echo "  ./phantomstrike.sh update             # pull latest + reinstall deps"
       echo "  ./phantomstrike.sh tools              # check what's installed"
@@ -846,7 +951,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # ---------------------------------------------------------------------------
-# v3.2 Commands: stop, tools, health — can run without venv
+# v3.3 Commands: stop, tools, health — can run without venv
 # ---------------------------------------------------------------------------
 
 if [[ "${RUN_STOP}" == true ]]; then
@@ -865,7 +970,7 @@ if [[ "${RUN_HEALTH}" == true ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# v3.2: install — full auto-install, then exit
+# v3.3: install — full auto-install, then exit
 # ---------------------------------------------------------------------------
 
 if [[ "${RUN_INSTALL}" == true ]]; then
@@ -873,6 +978,7 @@ if [[ "${RUN_INSTALL}" == true ]]; then
   if [[ ! -d "${VENV_DIR}" ]]; then
     "${PYTHON_BIN}" -m venv "${VENV_DIR}"
   fi
+  augment_runtime_path
   export PATH="${VENV_DIR}/bin:${PATH}"
   full_auto_install
   exit 0
@@ -882,7 +988,7 @@ fi
 # Default: no args → MCP launcher mode (preserves 5ire compatibility)
 # ---------------------------------------------------------------------------
 
-if [[ "${DO_SETUP}" == false && "${RUN_SERVER}" == false && "${RUN_MCP}" == false ]]; then
+if [[ "${DO_SETUP}" == false && "${RUN_SERVER}" == false && "${RUN_MCP}" == false && "${RUN_DAEMON_START}" == false ]]; then
   RUN_MCP=true
 fi
 
@@ -900,6 +1006,7 @@ if [[ ! -x "${VENV_DIR}/bin/python3" ]]; then
   fi
 fi
 
+augment_runtime_path
 export PATH="${VENV_DIR}/bin:${PATH}"
 cd "${ROOT_DIR}"
 
@@ -914,6 +1021,11 @@ fi
 # ---------------------------------------------------------------------------
 # Run phase
 # ---------------------------------------------------------------------------
+
+if [[ "${RUN_DAEMON_START}" == true ]]; then
+  start_server_daemon
+  exit 0
+fi
 
 if [[ "${RUN_SERVER}" == true && "${RUN_MCP}" == true ]]; then
   echo "Starting API server in background..."

@@ -4,20 +4,23 @@
 
 ## Quick orientation
 
-- Project: PhantomStrike v3.2 (Python 3.13+)
+- Project: PhantomStrike v3.3 (Python 3.13+)
 - Architecture: 35-agent AI swarm on native Kali Linux (no Docker)
 - Stack: Flask REST API + FastMCP bridge + ReAct-based autonomous loop + Hive Mind v3 event bus
 - Primary entrypoints: `phantomstrike_server.py`, `phantomstrike_mcp.py`
 - Config helpers: `config.py`, `core/config_core.py`
 - Tools registry: `tool_registry.py`
 - Deployment: `./phantomstrike.sh install` (one-command setup)
-- Tests directory exists but is currently empty of test modules.
+- Tests: pytest suite under `tests/` (latest local verification: 528 passing)
 
 ## The 35-Agent Swarm — Fleet Overview
 
-PhantomStrike v3.2 deploys 35 specialized AI agents organized into 6 categories.
-Every agent inherits from `server_core/orchestrator/agent_base.py` and communicates
-exclusively through the Hive Mind shared knowledge base.
+PhantomStrike v3.3 deploys 35 specialized AI agents organized into 5 categories.
+Every runtime agent is BaseAgent-backed through
+`server_core/orchestrator/agent_registry.py`; native agents inherit
+`server_core/orchestrator/agent_base.py` directly and legacy agents are wrapped
+by `BaseAgentRuntimeAdapter`. Agents communicate exclusively through the Hive
+Mind shared knowledge base.
 
 ### Category 1: Core Agents (6)
 The kill-chain foundation — these agents are in `server_core/orchestrator/` directly.
@@ -66,7 +69,7 @@ Advanced capabilities — `server_core/orchestrator/specialist_agents/`.
 | 22 | Auto Fixer | `specialist_agents/auto_fixer_agent.py` | Plan→Present→Approve→Fix→Verify (gated) |
 | 23 | Reverse Engineering | `specialist_agents/reverse_engineering_agent.py` | Binary analysis, vulnerability patterns, Ghidra/radare2 |
 
-### Category 5: Domain Agents (12) ★ New in v3.2
+### Category 5: Domain Agents (12) ★ Added in v3.2, carried forward in v3.3
 Universal attack surface coverage — `server_core/orchestrator/domain_agents/`.
 
 | # | Agent | File | Role |
@@ -90,7 +93,7 @@ and DB persistence. Agents never talk directly to each other.
 
 ## Deployment
 
-PhantomStrike v3.2 runs natively on Kali Linux — **no Docker required**.
+PhantomStrike v3.3 runs natively on Kali Linux — **no Docker required**.
 All tools install directly on the host via `scripts/install_tools.sh`.
 
 ### phantomstrike.sh Commands
@@ -174,7 +177,7 @@ nyxstrike/
 │   │   │   ├── bug_bounty_agent.py
 │   │   │   ├── auto_fixer_agent.py
 │   │   │   └── reverse_engineering_agent.py
-│   │   └── domain_agents/        # 12 universal-domain agents (NEW in v3.2)
+│   │   └── domain_agents/        # 12 universal-domain agents (added in v3.2)
 │   │       ├── iot_agent.py
 │   │       ├── scada_agent.py
 │   │       ├── automotive_agent.py
@@ -197,7 +200,8 @@ nyxstrike/
 ├── dashboard/                    # React web dashboard
 ├── docs/                         # Documentation
 │   ├── ARCHITECTURE_v3.0.md      # v3.0 architecture reference
-│   ├── ARCHITECTURE.md           # v3.2 comprehensive architecture
+│   ├── ARCHITECTURE.md           # v3.3 comprehensive architecture
+│   ├── ARCHITECTURE_v3.3.md      # v3.3 architecture delta
 │   └── intelligence_tool_catalog.md
 ├── tests/                        # pytest test suite
 ├── dependencies/                 # Python requirements (tiered)
@@ -211,10 +215,9 @@ nyxstrike/
 
 ### Tests
 
-This repo appears to use pytest (there is a `.pytest_cache`), but no test files are
-present under `tests/` right now. If you add tests, prefer pytest.
+This repo uses pytest. Keep new tests focused on the changed surface area.
 
-Run all tests (if any are added):
+Run all tests:
 
 ```bash
 pytest

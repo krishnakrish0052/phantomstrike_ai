@@ -208,6 +208,35 @@ class TestHashcatCommandBuilder:
             assert "?a?a?a?a" in cmd
 
 
+class TestHashcatUtilsCommandBuilder:
+    def test_basic_utility_command(self, client):
+        with patch(_HASHCAT_PATCH, return_value=_MOCK_RESULT) as mock_exec:
+            r = _post(client, "/api/tools/hashcat-utils", {
+                "utility": "cap2hccapx",
+                "input_file": "/tmp/capture.cap",
+                "output_file": "/tmp/capture.hccapx",
+            })
+            assert r.status_code == 200
+            cmd = mock_exec.call_args[0][0]
+            assert cmd == "cap2hccapx /tmp/capture.cap /tmp/capture.hccapx"
+            assert mock_exec.call_args.kwargs["tool"] == "hashcat-utils"
+            assert mock_exec.call_args.kwargs["endpoint"] == "/api/tools/hashcat-utils"
+
+    def test_combinator_requires_two_inputs(self, client):
+        r = _post(client, "/api/tools/hashcat-utils", {
+            "utility": "combinator",
+            "left_file": "/tmp/left.txt",
+        })
+        assert r.status_code == 400
+
+    def test_rejects_unknown_utility(self, client):
+        r = _post(client, "/api/tools/hashcat-utils", {
+            "utility": "not-a-real-hashcat-util",
+            "input_file": "/tmp/in.txt",
+        })
+        assert r.status_code == 400
+
+
 # ---------------------------------------------------------------------------
 # nuclei
 # ---------------------------------------------------------------------------
@@ -275,7 +304,7 @@ class TestSqlmapCommandBuilder:
             r = _post(client, "/api/tools/sqlmap", {"url": "http://example.com/page?id=1"})
             assert r.status_code == 200
             cmd = mock_exec.call_args[0][0]
-            assert "sqlmap -u http://example.com/page?id=1" in cmd
+            assert "sqlmap -u 'http://example.com/page?id=1'" in cmd
             assert "--batch" in cmd
 
     def test_requires_url(self, client):

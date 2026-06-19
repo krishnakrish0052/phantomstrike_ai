@@ -5,6 +5,7 @@ from mcp_tools.web_fuzz import *
 from mcp_tools.web_crawl import *
 from mcp_tools.web_scan import *
 from mcp_tools.exploit_framework import *
+from mcp_tools.exploitation import *
 from mcp_tools.ai_payload import *
 from mcp_tools.bugbounty_workflow import *
 from mcp_tools.password_cracking import *

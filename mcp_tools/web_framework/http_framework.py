@@ -3,6 +3,12 @@
 from typing import Dict, Any, Optional
 import asyncio
 
+def _available_tool_name(mcp, default_name: str, alias_name: str) -> str:
+    provider = getattr(mcp, "_local_provider", None)
+    components = getattr(provider, "_components", {})
+    return alias_name if f"tool:{default_name}@" in components else default_name
+
+
 def register_http_framework_tool(mcp, api_client, logger, CliColors):
 
     @mcp.tool()
@@ -60,7 +66,7 @@ def register_http_framework_tool(mcp, api_client, logger, CliColors):
         )
         return result
 
-    @mcp.tool()
+    @mcp.tool(name=_available_tool_name(mcp, "http_set_scope", "web_framework_http_set_scope"))
     async def http_set_scope(host: str, include_subdomains: bool = True) -> Dict[str, Any]:
         """Define in-scope host (and optionally subdomains) so out-of-scope requests are skipped."""
         payload = {"action": "set_scope", "host": host, "include_subdomains": include_subdomains}
@@ -70,7 +76,7 @@ def register_http_framework_tool(mcp, api_client, logger, CliColors):
         )
         return result
 
-    @mcp.tool()
+    @mcp.tool(name=_available_tool_name(mcp, "http_repeater", "web_framework_http_repeater"))
     async def http_repeater(request_spec: dict) -> Dict[str, Any]:
         """Send a crafted request (Burp Repeater equivalent). request_spec keys: url, method, headers, cookies, data."""
         payload = {"action": "repeater", "request": request_spec}

@@ -25,19 +25,20 @@ def register_burpsuite_tool(mcp, api_client, logger, CliColors):
             Burp Suite scan results
         """
         data = {
+            "target": target,
+            "scan_type": scan_type or scan_config or "comprehensive",
+            "headless": headless,
+            "max_depth": 3,
+            "max_pages": 50,
             "project_file": project_file,
             "config_file": config_file,
-            "target": target,
-            "headless": headless,
-            "scan_type": scan_type,
-            "scan_config": scan_config,
             "output_file": output_file,
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Burp Suite scan")
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(
-            None, lambda: api_client.safe_post("api/tools/burpsuite", data)
+            None, lambda: api_client.safe_post("api/tools/burpsuite-alternative", data)
         )
         if result.get("success"):
             logger.info(f"✅ Burp Suite scan completed")

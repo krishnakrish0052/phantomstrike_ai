@@ -73,6 +73,9 @@ IMPACKET_SCRIPTS = {
 
 
 def _script_binary(script_name: str) -> str:
+    for candidate in (f"impacket-{script_name}", f"{script_name}.py"):
+        if _binary_exists(candidate):
+            return candidate
     return f"impacket-{script_name}"
 
 
@@ -401,6 +404,18 @@ def run_impacket():
     except Exception as e:
         logger.exception("Error in Impacket endpoint")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@api_tools_impacket_bp.route("/api/tool/active_directory/impacket/ad-enum", methods=["POST"])
+def run_impacket_ad_enum():
+    """Route alias for AD enumeration tools backed by the generic Impacket runner."""
+    return run_impacket()
+
+
+@api_tools_impacket_bp.route("/api/tool/active_directory/impacket/remote-exec", methods=["POST"])
+def run_impacket_remote_exec():
+    """Route alias for remote execution tools backed by the generic Impacket runner."""
+    return run_impacket()
 
 
 @api_tools_impacket_bp.route("/api/tool/active_directory/impacket/spec", methods=["POST"])

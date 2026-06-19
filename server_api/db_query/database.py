@@ -4,13 +4,23 @@ Database interaction API endpoints (MySQL, SQLite, PostgreSQL).
 
 import sqlite3
 from flask import Blueprint, request, jsonify
-import pymysql
 #import psycopg2
+
+try:
+    import pymysql
+except ImportError:  # Optional: only required when the MySQL endpoint is used.
+    pymysql = None
 
 api_database_bp = Blueprint("database", __name__)
 
 @api_database_bp.route("/api/tools/mysql", methods=["POST"])
 def mysql_query():
+    if pymysql is None:
+        return jsonify({
+            "success": False,
+            "error": "PyMySQL is not installed; MySQL queries are unavailable in this environment",
+        }), 503
+
     data = request.json
     host = data.get("host")
     user = data.get("user")
