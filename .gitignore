@@ -19,3 +19,12 @@ ui/node_modules/
 __pycache__/
 *.pyc
 .phantomstrike_data/
+
+# AI assistant configs & plans
+.claude/
+.codex/
+.hermes/
+.opencode/
+
+# Runtime data
+.phantomstrike_data/
