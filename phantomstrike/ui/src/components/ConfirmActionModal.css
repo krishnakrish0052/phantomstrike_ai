@@ -1,0 +1,29 @@
+.confirm-action-modal {
+  max-width: 520px;
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--border));
+  background:
+    radial-gradient(circle at 85% -10%, color-mix(in srgb, var(--danger) 18%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--danger) 8%, var(--bg-card)) 0%, var(--bg-card) 100%);
+}
+
+.confirm-action-impact {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.confirm-action-impact-item {
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, var(--border));
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: color-mix(in srgb, var(--danger) 70%, var(--text));
+  border-radius: 8px;
+  padding: 10px 11px;
+  font-size: 13px;
+}
+
+.confirm-action-buttons {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

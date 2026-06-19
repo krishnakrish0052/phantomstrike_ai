@@ -1,0 +1,178 @@
+# Global configuration for PhantomStrike
+
+_config = {
+    "APP_NAME": "PhantomStrike",
+    "VERSION": "2.0.0",
+    "DATA_DIR_NAME": ".phantomstrike_data",  # Root data directory name (relative to cwd, override with PHANTOMSTRIKE_DATA_DIR env var)
+    "COMMAND_TIMEOUT": 500,
+    "REQUEST_TIMEOUT": 30,
+    "COMMAND_INACTIVITY_TIMEOUT": 900,
+    "COMMAND_MAX_RUNTIME": 86400,
+    "TOOL_TIMEOUT_OVERRIDES": {
+        "hydra": 0,
+        "hashcat": 0,
+        "john": 0,
+        "medusa": 0,
+        "patator": 0,
+        "ophcrack": 0,
+        "wifite": 0,
+        "wifite2": 0,
+        "aircrack-ng": 0,
+        "aircrack_ng": 0,
+        "sqlmap": 1800,
+        "nuclei": 1800,
+        "autorecon": 1800,
+        "amass": 1800,
+    },
+    "CLEAN_TOOL_OUTPUT": True,
+    "CPU_NICE_THRESHOLD": 85,  # CPU% above which tool commands are niced down (nice -n 10)
+    "LLM_KEEP_ALIVE": 300,    # Seconds to keep the Ollama model in VRAM after each inference (default 5 min)
+    "CACHE_SIZE": 1000,
+    "CACHE_TTL": 3600,  # 1 hour
+    "TOOL_AVAILABILITY_TTL": 3600,  # 1 hour
+    "DEFAULT_API_SERVER_URL": "http://127.0.0.1:8888",
+    "MAX_RETRIES": 3,
+    "METASPLOIT_SESSION_WAIT": 10,  # Seconds to wait after exploit -j before listing sessions
+    "PATHS": {
+        "GO_BINARYS": "{HOME}/go/bin/"
+    },
+
+    # ── LLM client ────────────────────────────────────────────────────────────
+    "PHANTOMSTRIKE_LLM_PROVIDER": "ollama",                         # ollama | openai | anthropic
+    "PHANTOMSTRIKE_LLM_MODEL":    "phantomstrike-ai",                   # Ollama model name or OpenAI/Anthropic model name",
+    "PHANTOMSTRIKE_LLM_URL":      "http://localhost:11434",         # Ollama base URL (ignored for openai/anthropic)
+    "PHANTOMSTRIKE_LLM_API_KEY":  "",                               # Required for openai / anthropic
+    "PHANTOMSTRIKE_LLM_TIMEOUT":  600,                              # seconds
+    "PHANTOMSTRIKE_LLM_MAX_LOOPS": 9,
+    "PHANTOMSTRIKE_LLM_THINK":    False,                            # Enable model thinking/reasoning (Ollama only, e.g. Qwen3)
+    "PHANTOMSTRIKE_LLM_NUM_CTX":  4096,                             # Context window size for chat (Ollama only)
+    "PHANTOMSTRIKE_LLM_NUM_CTX_ANALYSE": 16384,                     # Context window size for AI Analyse / AI Report (Ollama only)
+
+    # ── Chat widget ───────────────────────────────────────────────────────────
+    "CHAT_PERSONALITY": "phantomstrike",  # active personality preset id (see server_core/intelligence/chat_personalities.py)
+    "CHAT_SYSTEM_PROMPT": (
+        "You are PhantomStrike, an expert penetration testing AI assistant embedded in a "
+        "security operations platform. You help operators understand scan results, plan "
+        "attacks, interpret findings, and write reports. Be concise, technical, and actionable. "
+        "When the user greets you casually or makes small talk, respond naturally and warmly — "
+        "you are a teammate, not a robot. Match the tone of the conversation."
+    ),
+    "CHAT_CUSTOM_PROMPT": "",  # saved custom system prompt (used when CHAT_PERSONALITY == "custom")
+    "CHAT_SUMMARIZATION_THRESHOLD": 20,   # non-summarized messages before rolling summary kicks in
+    "CHAT_CONTEXT_INJECTION_CHARS": 4000, # max chars of session scan output injected as context
+
+    "WORD_LISTS": {
+
+        # --- Password Lists ---
+        "rockyou": {
+            "path": "/usr/share/wordlists/rockyou.txt",
+            "type": "password",
+            "description": "Common password list for brute-force attacks",
+            "recommended_for": ["password_cracking", "login_fuzzing"],
+            "size": 14344392,
+            "tool": ["john", "hydra"],
+            "speed": "slow",
+            "language": "en",
+            "coverage": "broad",
+            "format": "txt"
+        },
+        "john": {
+            "path": "/usr/share/wordlists/john.lst",
+            "type": "password",
+            "description": "John the Ripper password list",
+            "recommended_for": ["password_cracking", "john"],
+            "size": 3559,
+            "tool": ["john"],
+            "speed": "fast",
+            "language": "en",
+            "coverage": "focused",
+            "format": "lst"
+        },
+
+        # --- Directory Lists ---
+        "common_dirb": {
+            "path": "/usr/share/wordlists/dirb/common.txt",
+            "type": "directory",
+            "description": "Common directory names for web discovery",
+            "recommended_for": ["dirbusting", "web_content_discovery"],
+            "size": 4614,
+            "tool": ["dirb"],
+            "speed": "medium",
+            "language": "en",
+            "coverage": "broad",
+            "format": "txt"
+        },
+        "big_dirb": {
+            "path": "/usr/share/wordlists/dirb/big.txt",
+            "type": "directory",
+            "description": "Large directory wordlist for web discovery",
+            "recommended_for": ["dirbusting"],
+            "size": 20469,
+            "tool": ["dirb"],
+            "speed": "slow",
+            "language": "en",
+            "coverage": "broad",
+            "format": "txt"
+        },
+        "small_dirb": {
+            "path": "/usr/share/wordlists/dirb/small.txt",
+            "type": "directory",
+            "description": "Small directory wordlist for quick scans",
+            "recommended_for": ["dirbusting"],
+            "size": 959,
+            "tool": ["dirb"],
+            "speed": "fast",
+            "language": "en",
+            "coverage": "focused",
+            "format": "txt"
+        },
+        "common_dirsearch": {
+            "path": "/usr/share/wordlists/dirsearch/common.txt",
+            "type": "directory",
+            "description": "Common directory names for Dirsearch",
+            "recommended_for": ["dirsearch", "web_content_discovery"],
+            "size": 2205,
+            "tool": ["dirsearch"],
+            "speed": "medium",
+            "language": "en",
+            "coverage": "focused",
+            "format": "txt"
+        }
+    },
+
+    # ── Exploit Generation ────────────────────────────────────────────────────
+    "EXPLOIT_DEFAULT_LANGUAGE": "python",
+    "EXPLOIT_DEFAULT_EVASION": "none",
+    "EXPLOIT_AUTO_VERIFY": False,
+    "EXPLOIT_SAFE_MODE": True,
+    "EXPLOIT_TIMEOUT": 120,
+    "EXPLOIT_MAX_CODE_SIZE": 50000,
+
+    # ── Browser Agent ─────────────────────────────────────────────────────────
+    "BROWSER_AGENT_HEADLESS": True,
+    "BROWSER_AGENT_WAIT_TIME": 5,
+    "BROWSER_AGENT_SCREENSHOT_QUALITY": 80,
+    "BROWSER_AGENT_TIMEOUT": 30,
+    "BROWSER_AGENT_WINDOW_SIZE": "1920,1080",
+
+    # ── HTTP Testing Framework ────────────────────────────────────────────────
+    "HTTP_FRAMEWORK_PROXY_PORT": 8080,
+    "HTTP_FRAMEWORK_MAX_HISTORY": 500,
+    "HTTP_FRAMEWORK_DEFAULT_TIMEOUT": 30,
+    "HTTP_FRAMEWORK_MAX_INTRUDER_REQUESTS": 100,
+    "HTTP_FRAMEWORK_SPIDER_MAX_DEPTH": 3,
+    "HTTP_FRAMEWORK_SPIDER_MAX_PAGES": 100,
+
+    # ── CVE Intelligence ──────────────────────────────────────────────────────
+    "CVE_FEED_UPDATE_INTERVAL": 86400,
+    "CVE_CACHE_TTL": 3600,
+    "CVE_MAX_RESULTS": 50,
+    "CVE_RISK_THRESHOLD_CRITICAL": 80,
+    "CVE_RISK_THRESHOLD_HIGH": 60,
+    "CVE_RISK_THRESHOLD_MEDIUM": 40,
+
+    # ── Attack Chains ─────────────────────────────────────────────────────────
+    "ATTACK_CHAIN_MAX_DEPTH": 7,
+    "ATTACK_CHAIN_DEFAULT_ENVIRONMENT": "linux",
+    "ATTACK_CHAIN_SIMULATION_ITERATIONS": 1000,
+}

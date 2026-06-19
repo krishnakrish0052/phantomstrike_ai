@@ -1,0 +1,26 @@
+services:
+  phantomstrike:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: phantomstrike:latest
+    container_name: phantomstrike
+    ports:
+      - "0.0.0.0:8888:8888"
+    environment:
+      # Override these via a .env file or shell environment
+      - PHANTOMSTRIKE_HOST=0.0.0.0
+      - PHANTOMSTRIKE_PORT=8888
+      # Uncomment to enable bearer token auth:
+      # - PHANTOMSTRIKE_API_TOKEN=changeme
+    # Persist output/logs across restarts
+    volumes:
+      - phantomstrike-output:/opt/phantomstrike/output
+    restart: unless-stopped
+    # Needed for raw-socket tools (nmap SYN scan, masscan, etc.)
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+volumes:
+  phantomstrike-output:

@@ -1,0 +1,14 @@
+.information-modal {
+  max-width: 700px;
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+  background:
+    radial-gradient(circle at 88% -12%, color-mix(in srgb, var(--accent-alt) 16%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, var(--bg-card)) 0%, var(--bg-card) 100%);
+}
+
+.information-modal-buttons {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

@@ -1,0 +1,205 @@
+# PhantomStrike v3.2 — Managed Tool Inventory
+# Each line is a tool binary name. Lines starting with ## are category headers.
+# Lines starting with # are comments. Empty lines are ignored.
+#
+# Legend: [✓] installed  [✗] missing  [~] partial
+
+## Network Recon & Scanning
+nmap
+masscan
+rustscan
+autorecon
+nxc
+netexec
+amass
+subfinder
+fierce
+dnsenum
+theHarvester
+responder
+enum4linux
+enum4linux-ng
+arp-scan
+nbtscan
+smbmap
+sublist3r
+assetfinder
+shuffledns
+massdns
+dig
+whois
+bbot
+parsero
+
+## Web Application Security
+gobuster
+ffuf
+feroxbuster
+dirsearch
+dirb
+httpx
+katana
+hakrawler
+gau
+waybackurls
+nikto
+sqlmap
+wpscan
+arjun
+paramspider
+dalfox
+wafw00f
+whatweb
+jwt-tool
+wfuzz
+commix
+xsser
+dotdotpwn
+jaeles
+gospider
+joomscan
+testssl
+zaproxy
+burpsuite
+
+## Authentication & Password Cracking
+hydra
+john
+hashcat
+medusa
+patator
+evil-winrm
+hash-identifier
+hashid
+ophcrack
+hashcat-utils
+
+## Binary Analysis & Reverse Engineering
+gdb
+radare2
+binwalk
+ropgadget
+checksec
+objdump
+exiftool
+strings
+xxd
+file
+ropper
+angr
+libc-database
+pwninit
+one-gadget
+pwntools
+
+## Forensics & CTF
+vol
+volatility
+steghide
+foremost
+photorec
+testdisk
+scalpel
+bulk_extractor
+stegsolve
+zsteg
+outguess
+sleuthkit
+hashpump
+
+## Cloud & Container Security
+prowler
+scout-suite
+trivy
+kube-hunter
+kube-bench
+docker-bench-security
+checkov
+terrascan
+falco
+clair
+cloudmapper
+pacu
+
+## OSINT & Intelligence
+sherlock
+recon-ng
+spiderfoot
+maltego
+shodan
+censys
+social-analyzer
+
+## WiFi & Wireless
+airmon-ng
+airodump-ng
+aireplay-ng
+aircrack-ng
+airbase-ng
+airdecap-ng
+kismet
+wireshark
+tshark
+tcpdump
+bettercap
+hcxdumptool
+hcxpcapngtool
+mdk4
+eaphammer
+wifite
+
+## Exploitation Frameworks
+msfconsole
+msfvenom
+searchsploit
+
+## Database Tools
+mysql
+sqlite3
+
+## API & Utilities
+curl
+hurl
+anew
+qsreplace
+uro
+http-server
+
+## Active Directory
+impacket
+ldapdomaindump
+bloodhound
+certipy-ad
+mitm6
+adidnsdump
+pywerview
+
+## Vulnerability Intelligence
+nuclei
+vulnx
+
+## Mobile Security
+frida
+objection
+jadx
+apktool
+mobsf
+mitmproxy
+class-dump
+drozer
+
+## Hardware & RF
+proxmark3
+hackrf
+rtl-sdr
+gnuradio
+yardstick
+ubertooth
+
+## Additional Security
+sniper
+xsstrike
+corsy
+git-dumper
+subjack
+subzy

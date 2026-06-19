@@ -1,0 +1,384 @@
+/* ── Settings Page ───────────────────────────────────────────────────────── */
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-appearance-row {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.settings-appearance-card {
+  align-items: center;
+}
+
+.settings-appearance-card--action {
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, transparent), color-mix(in srgb, var(--accent-alt) 7%, transparent)),
+    var(--bg-card);
+}
+
+.settings-maintenance-card {
+  border-color: color-mix(in srgb, var(--warning) 26%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--warning) 8%, transparent), color-mix(in srgb, var(--warning) 4%, transparent)),
+    var(--bg-card);
+}
+
+.settings-appearance-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.settings-appearance-value {
+  font-size: 18px;
+}
+
+.settings-appearance-btn {
+  margin-top: 6px;
+}
+
+.settings-appearance-card--clickable {
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+
+.settings-appearance-card--clickable:hover {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.settings-appearance-card--clickable:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 48%, transparent);
+  outline-offset: 2px;
+}
+
+.settings-appearance-tap-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.settings-appearance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 18px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-value {
+  word-break: break-word;
+  font-size: 13px;
+  color: var(--text-h);
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 18px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-input {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-h);
+  padding: 6px 10px;
+  font-size: 13px;
+  width: 100px;
+  outline: none;
+}
+.settings-input:focus { border-color: var(--green); }
+
+select.settings-input {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-dim) 50%), linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+  background-position: calc(100% - 14px) calc(50% + 1px), calc(100% - 9px) calc(50% + 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 26px;
+}
+
+.settings-select-full {
+  width: 100%;
+  max-width: 260px;
+}
+
+.settings-unit {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.settings-hint-small {
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 10px 5px 12px;
+  line-height: 1.5;
+}
+
+
+.settings-hint {
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 10px 18px 12px;
+  line-height: 1.5;
+}
+
+.settings-hint code {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--green);
+}
+
+.settings-hint-inline {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+}
+
+.settings-actions-inline {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.settings-actions .btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  padding: 8px 20px;
+}
+
+
+/* ── Wordlists Table ─────────────────────────────────────────────────────── */
+.wordlist-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.wordlist-head {
+  display: grid;
+  grid-template-columns: 160px 100px 90px 100px 1fr 84px;
+  gap: 10px;
+  padding: 8px 18px;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--bg-card2);
+  border-bottom: 1px solid var(--border);
+}
+
+.wordlist-row {
+  display: grid;
+  grid-template-columns: 160px 100px 90px 100px 1fr 84px;
+  gap: 10px;
+  padding: 10px 18px;
+  font-size: 12px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+.wordlist-row:last-child { border-bottom: none; }
+.wordlist-row:hover { background: var(--bg-card2); }
+
+.wordlist-row.editable {
+  gap: 8px;
+}
+
+.wordlist-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.btn-secondary,
+.btn-danger-outline {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card2);
+  color: var(--text-h);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 7px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-secondary:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.btn-danger-outline:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.btn-secondary:disabled,
+.btn-danger-outline:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.settings-textarea {
+  width: 100%;
+  min-height: 120px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-h);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--mono);
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+.settings-textarea:focus { border-color: var(--green); }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .settings-grid { grid-template-columns: 1fr; }
+  .wordlist-table { overflow-x: auto; }
+  .wordlist-head, .wordlist-row {
+    min-width: 760px;
+    grid-template-columns: 160px 100px 90px 100px 1fr 84px;
+  }
+}
+
+/* ── Page Visibility ─────────────────────────────────────────────────────── */
+.settings-page-visibility-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.settings-page-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card2);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+  color: var(--text-h);
+}
+
+.settings-page-tile--on {
+  border-color: var(--green);
+  background: color-mix(in srgb, var(--green) 8%, var(--bg-card2));
+}
+
+.settings-page-tile--off {
+  border-color: var(--border);
+  background: var(--bg-card2);
+  opacity: 0.65;
+}
+
+.settings-page-tile--locked {
+  cursor: default;
+  opacity: 1 !important;
+}
+
+.settings-page-tile:hover:not(:disabled) {
+  border-color: var(--green);
+  opacity: 1;
+}
+
+.settings-page-tile-icon {
+  color: var(--green);
+  line-height: 1;
+}
+
+.settings-page-tile--off .settings-page-tile-icon {
+  color: var(--text-dim);
+}
+
+.settings-page-tile-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.2;
+}
+
+.settings-page-tile-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.settings-page-tile-badge {
+  font-size: 10px;
+  font-family: var(--mono);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-top: 2px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.settings-page-tile-badge.on {
+  background: color-mix(in srgb, var(--green) 18%, transparent);
+  color: var(--green);
+}
+
+.settings-page-tile-badge.off {
+  background: color-mix(in srgb, var(--text-dim) 12%, transparent);
+  color: var(--text-dim);
+}
