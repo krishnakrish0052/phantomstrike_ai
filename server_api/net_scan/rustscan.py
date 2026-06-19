@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -24,16 +25,16 @@ def rustscan():
             logger.warning("🎯 Rustscan called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
 
-        command = f"rustscan -a {target} --ulimit {ulimit} -b {batch_size} -t {timeout}"
+        command = f"rustscan -a {shlex.quote(target)} --ulimit {shlex.quote(str(ulimit))} -b {shlex.quote(str(batch_size))} -t {shlex.quote(str(timeout))}"
 
         if ports:
-            command += f" -p {ports}"
+            command += f" -p {shlex.quote(ports)}"
 
         if scripts:
             command += f" -- -sC -sV"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"⚡ Starting Rustscan: {target}")
         result = execute_command(command)

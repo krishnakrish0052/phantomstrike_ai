@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -24,10 +25,10 @@ def feroxbuster():
                 "error": "URL parameter is required"
             }), 400
 
-        command = f"feroxbuster -u {url} -w {wordlist} -t {threads}"
+        command = f"feroxbuster -u {shlex.quote(url)} -w {shlex.quote(wordlist)} -t {shlex.quote(str(threads))}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔍 Starting Feroxbuster scan: {url}")
         result = execute_command(command)

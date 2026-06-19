@@ -1,6 +1,12 @@
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
+from server_core.security import (
+    safe_url,
+    quote_arg,
+    safe_extra_args,
+    CommandSanitizationError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +28,18 @@ def sqlmap():
                 "error": "URL parameter is required"
             }), 400
 
-        command = f"sqlmap -u {url} --batch"
-
-        if data:
-            command += f" --data=\"{data}\""
-
-        if additional_args:
-            command += f" {additional_args}"
+        # Harden against OS command injection: every user-supplied value is
+        # validated/escaped before being interpolated into the shell command.
+        try:
+            safe_target = safe_url(url)
+            command = f"sqlmap -u {safe_target} --batch"
+            if data:
+                command += f" --data={quote_arg(data)}"
+            if additional_args:
+                command += f" {safe_extra_args(additional_args)}"
+        except CommandSanitizationError as exc:
+            logger.warning(f"🚫 Rejected unsafe SQLMap input: {exc}")
+            return jsonify({"error": f"Invalid input: {exc}"}), 400
 
         logger.info(f"💉 Starting SQLMap scan: {url}")
         result = execute_command(command)

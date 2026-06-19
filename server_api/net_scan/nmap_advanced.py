@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -27,15 +28,15 @@ def nmap_advanced():
             logger.warning("🎯 Advanced Nmap called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
 
-        command = f"nmap {scan_type} {target}"
+        command = f"nmap {shlex.quote(scan_type)} {shlex.quote(target)}"
 
         if ports:
-            command += f" -p {ports}"
+            command += f" -p {shlex.quote(ports)}"
 
         if stealth:
             command += " -T2 -f --mtu 24"
         else:
-            command += f" -{timing}"
+            command += f" -{shlex.quote(timing)}"
 
         if os_detection:
             command += " -O"
@@ -47,15 +48,12 @@ def nmap_advanced():
             command += " -A"
 
         if nse_scripts:
-            command += f" --script={nse_scripts}"
+            command += f" --script={shlex.quote(nse_scripts)}"
         elif not aggressive:
-            # Use Nmap's default script set instead of broad discovery/safe
-            # categories, which can trigger noisy local-network broadcast NSE
-            # behavior unrelated to the requested target.
             command += " -sC"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔍 Starting Advanced Nmap: {target}")
         result = execute_command(command)

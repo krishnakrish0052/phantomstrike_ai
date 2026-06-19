@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -19,7 +20,7 @@ def whatweb():
                 "error": "URL parameter is required"
             }), 400
 
-        command = f"whatweb -v -a 3 {url}"
+        command = f"whatweb -v -a 3 {shlex.quote(url)}"
 
         logger.info(f"🔍 Starting WhatWeb: {url}")
         result = execute_command(command)

@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -29,23 +30,23 @@ def zap():
             }), 400
 
         if daemon:
-            command = f"zaproxy -daemon -host {host} -port {port}"
+            command = f"zaproxy -daemon -host {shlex.quote(host)} -port {shlex.quote(port)}"
             if api_key:
-                command += f" -config api.key={api_key}"
+                command += f" -config api.key={shlex.quote(api_key)}"
         else:
-            command = f"zaproxy -cmd -quickurl {target}"
+            command = f"zaproxy -cmd -quickurl {shlex.quote(target)}"
 
             if format_type:
-                command += f" -quickout {format_type}"
+                command += f" -quickout {shlex.quote(format_type)}"
 
             if output_file:
-                command += f" -quickprogress -dir \"{output_file}\""
+                command += f" -quickprogress -dir \"{shlex.quote(output_file)}\""
 
             if api_key:
-                command += f" -config api.key={api_key}"
+                command += f" -config api.key={shlex.quote(api_key)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔍 Starting ZAP scan: {target}")
         result = execute_command(command)

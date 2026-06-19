@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -21,10 +22,10 @@ def wpscan():
                 "error": "URL parameter is required"
             }), 400
 
-        command = f"wpscan --url {url}"
+        command = f"wpscan --url {shlex.quote(url)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔍 Starting WPScan: {url}")
         result = execute_command(command)

@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 import logging
+import shlex
 from server_core.command_executor import execute_command
 
 logger = logging.getLogger(__name__)
@@ -46,29 +47,29 @@ def gospider():
         command_parts = ["gospider"]
 
         if site:
-            command_parts.extend(["-s", site])
+            command_parts.extend(["-s", shlex.quote(site)])
         if sites:
-            command_parts.extend(["-S", sites])
+            command_parts.extend(["-S", shlex.quote(sites)])
         if proxy:
-            command_parts.extend(["-p", proxy])
+            command_parts.extend(["-p", shlex.quote(proxy)])
         if output:
-            command_parts.extend(["-o", output])
+            command_parts.extend(["-o", shlex.quote(output)])
         if user_agent:
-            command_parts.extend(["-u", user_agent])
+            command_parts.extend(["-u", shlex.quote(user_agent)])
         if cookie:
-            command_parts.extend(["--cookie", cookie])
+            command_parts.extend(["--cookie", shlex.quote(cookie)])
 
         if isinstance(headers, str) and headers:
-            command_parts.extend(["-H", headers])
+            command_parts.extend(["-H", shlex.quote(headers)])
         elif isinstance(headers, list):
             for header in headers:
                 if isinstance(header, str) and header:
-                    command_parts.extend(["-H", header])
+                    command_parts.extend(["-H", shlex.quote(header)])
 
         if burp:
-            command_parts.extend(["--burp", burp])
+            command_parts.extend(["--burp", shlex.quote(burp)])
         if blacklist:
-            command_parts.extend(["--blacklist", blacklist])
+            command_parts.extend(["--blacklist", shlex.quote(blacklist)])
 
         if threads:
             command_parts.extend(["-t", str(threads)])
@@ -103,7 +104,7 @@ def gospider():
             command_parts.append("--version")
 
         if additional_args:
-            command_parts.append(additional_args)
+            command_parts.append(shlex.quote(additional_args))
 
         command = " ".join(command_parts)
 

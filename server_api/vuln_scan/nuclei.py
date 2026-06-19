@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 
@@ -25,19 +26,19 @@ def nuclei():
                 "error": "Target parameter is required"
             }), 400
 
-        command = f"nuclei -u {target}"
+        command = f"nuclei -u {shlex.quote(target)}"
 
         if severity:
-            command += f" -severity {severity}"
+            command += f" -severity {shlex.quote(severity)}"
 
         if tags:
-            command += f" -tags {tags}"
+            command += f" -tags {shlex.quote(tags)}"
 
         if template:
-            command += f" -t {template}"
+            command += f" -t {shlex.quote(template)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"Starting Nuclei vulnerability scan: {target}")
 

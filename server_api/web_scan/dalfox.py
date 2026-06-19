@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -27,7 +28,7 @@ def dalfox():
         if pipe_mode:
             command = "dalfox pipe"
         else:
-            command = f"dalfox url {url}"
+            command = f"dalfox url {shlex.quote(url)}"
 
         if blind:
             command += " --blind"
@@ -39,10 +40,10 @@ def dalfox():
             command += " --mining-dict"
 
         if custom_payload:
-            command += f" --custom-payload '{custom_payload}'"
+            command += f" --custom-payload '{shlex.quote(custom_payload)}'"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🎯 Starting Dalfox XSS scan: {url if url else 'pipe mode'}")
         result = execute_command(command)

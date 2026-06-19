@@ -3,6 +3,7 @@
 from flask import Blueprint, request, jsonify
 from server_core.command_executor import execute_command
 import logging
+import shlex
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ def theharvester():
         return jsonify({"success": False, "error": "Domain is required"}), 400
 
 
-    command = f"theHarvester -d {domain} {additional_args}"
+    command = f"theHarvester -d {shlex.quote(domain)} {shlex.quote(additional_args)}"
     logger.info(f"🔍 Starting TheHarvester: {domain}")
     result = execute_command(command, use_cache=True)
     if result.get("success"):

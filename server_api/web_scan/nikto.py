@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -21,10 +22,10 @@ def nikto():
                 "error": "Target parameter is required"
             }), 400
 
-        command = f"nikto -h {target}"
+        command = f"nikto -h {shlex.quote(target)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔬 Starting Nikto scan: {target}")
         result = execute_command(command)

@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 import logging
 
+import shlex
+
 from server_core.command_executor import execute_command
 
 logger = logging.getLogger(__name__)
@@ -19,9 +21,9 @@ def run_ldapdomaindump():
         return jsonify({"error": "Hostname is required"}), 400
 
     # Build the command
-    cmd = ["ldapdomaindump", hostname, "--authtype", authtype]
+    cmd = ["ldapdomaindump", shlex.quote(hostname), "--authtype", shlex.quote(authtype)]
     if username and password:
-        cmd.extend(["--user", username, "--password", password])
+        cmd.extend(["--user", shlex.quote(username), "--password", shlex.quote(password)])
 
     try:
         command_str = " ".join(cmd)

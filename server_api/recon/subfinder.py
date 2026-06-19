@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -23,7 +24,7 @@ def subfinder():
                 "error": "Domain parameter is required"
             }), 400
 
-        command = f"subfinder -d {domain}"
+        command = f"subfinder -d {shlex.quote(domain)}"
 
         if silent:
             command += " -silent"
@@ -32,7 +33,7 @@ def subfinder():
             command += " -all"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔍 Starting Subfinder: {domain}")
         result = execute_command(command)

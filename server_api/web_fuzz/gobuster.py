@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 
@@ -31,10 +32,10 @@ def gobuster():
                 "error": f"Invalid mode: {mode}. Must be one of: dir, dns, fuzz, vhost"
             }), 400
 
-        command = f"gobuster {mode} -u {url} -w {wordlist}"
+        command = f"gobuster {shlex.quote(mode)} -u {shlex.quote(url)} -w {shlex.quote(wordlist)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"Starting Gobuster {mode} scan: {url}")
 

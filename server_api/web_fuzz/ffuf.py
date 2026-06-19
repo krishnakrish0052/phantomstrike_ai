@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -28,18 +29,18 @@ def ffuf():
         command = f"ffuf"
 
         if mode == "directory":
-            command += f" -u {url}/FUZZ -w {wordlist}"
+            command += f" -u {shlex.quote(url)}/FUZZ -w {shlex.quote(wordlist)}"
         elif mode == "vhost":
-            command += f" -u {url} -H 'Host: FUZZ' -w {wordlist}"
+            command += f" -u {shlex.quote(url)} -H 'Host: FUZZ' -w {shlex.quote(wordlist)}"
         elif mode == "parameter":
-            command += f" -u {url}?FUZZ=value -w {wordlist}"
+            command += f" -u {shlex.quote(url)}?FUZZ=value -w {shlex.quote(wordlist)}"
         else:
-            command += f" -u {url} -w {wordlist}"
+            command += f" -u {shlex.quote(url)} -w {shlex.quote(wordlist)}"
 
-        command += f" -mc {match_codes}"
+        command += f" -mc {shlex.quote(match_codes)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔍 Starting FFuf {mode} fuzzing: {url}")
         result = execute_command(command)

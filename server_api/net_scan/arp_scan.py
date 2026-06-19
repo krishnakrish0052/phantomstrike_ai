@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 
@@ -24,18 +25,18 @@ def arp_scan():
             logger.warning("🎯 arp-scan called without target parameter")
             return jsonify({"error": "Target parameter or local_network flag is required"}), 400
 
-        command = f"arp-scan -t {timeout} -r {retry}"
+        command = f"arp-scan -t {shlex.quote(str(timeout))} -r {shlex.quote(str(retry))}"
 
         if interface:
-            command += f" -I {interface}"
+            command += f" -I {shlex.quote(interface)}"
 
         if local_network:
             command += " -l"
         else:
-            command += f" {target}"
+            command += f" {shlex.quote(target)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔍 Starting arp-scan: {target if target else 'local network'}")
         result = execute_command(command)

@@ -97,6 +97,11 @@ def register_blueprints(app):
   #Active Directory
   app.register_blueprint(api_tools_impacket_bp)
   app.register_blueprint(api_tool_active_directory_ldapdomaindump_bp)
+  app.register_blueprint(api_tool_active_directory_certipy_ad_bp)
+  app.register_blueprint(api_tool_active_directory_mitm6_bp)
+  app.register_blueprint(api_tool_active_directory_bloodhound_ce_python_bp)
+  app.register_blueprint(api_tool_active_directory_adidnsdump_bp)
+  app.register_blueprint(api_tool_active_directory_pywerview_bp)
 
   # OPS — General
   app.register_blueprint(api_visual_bp)
@@ -414,3 +419,7 @@ def register_blueprints(app):
 
   # Mission Orchestrator
   app.register_blueprint(api_orchestrator_bp)
+
+  # v3.3 GODMODE Engine — 7 Pillars + 15 Capabilities
+  from server_api.engine.engine_routes import engine_bp
+  app.register_blueprint(engine_bp)

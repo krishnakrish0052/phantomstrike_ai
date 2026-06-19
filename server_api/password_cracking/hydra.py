@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -35,19 +36,19 @@ def hydra():
         command = f"hydra -t 4"
 
         if username:
-            command += f" -l {username}"
+            command += f" -l {shlex.quote(username)}"
         elif username_file:
-            command += f" -L {username_file}"
+            command += f" -L {shlex.quote(username_file)}"
 
         if password:
-            command += f" -p {password}"
+            command += f" -p {shlex.quote(password)}"
         elif password_file:
-            command += f" -P {password_file}"
+            command += f" -P {shlex.quote(password_file)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
-        command += f" {target} {service}"
+        command += f" {shlex.quote(target)} {shlex.quote(service)}"
 
         logger.info(f"🔑 Starting Hydra attack: {target}:{service}")
         result = execute_command(command, tool="hydra")

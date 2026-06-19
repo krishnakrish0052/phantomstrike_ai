@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -18,14 +19,14 @@ def interactsh():
         timeout = params.get("timeout", 60)
         additional_args = params.get("additional_args", "")
 
-        command = f"interactsh-client -json -n {n} -pi {poll_interval}"
+        command = f"interactsh-client -json -n {shlex.quote(str(n))} -pi {shlex.quote(str(poll_interval))}"
 
         if server:
-            command += f" -server {server}"
+            command += f" -server {shlex.quote(server)}"
         if token:
-            command += f" -token {token}"
+            command += f" -token {shlex.quote(token)}"
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔗 Starting interactsh-client (n={n}, poll_interval={poll_interval}s, timeout={timeout}s)")
         result = execute_command(command, timeout=timeout)

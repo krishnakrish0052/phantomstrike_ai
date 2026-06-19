@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -24,13 +25,13 @@ def dirsearch():
             logger.warning("🌐 Dirsearch called without URL parameter")
             return jsonify({"error": "URL parameter is required"}), 400
 
-        command = f"dirsearch -u {url} -e {extensions} -w {wordlist} -t {threads}"
+        command = f"dirsearch -u {shlex.quote(url)} -e {shlex.quote(extensions)} -w {shlex.quote(wordlist)} -t {shlex.quote(str(threads))}"
 
         if recursive:
             command += " -r"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"📁 Starting Dirsearch scan: {url}")
         result = execute_command(command)

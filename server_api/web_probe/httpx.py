@@ -1,4 +1,5 @@
 import os
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core import config_core
@@ -37,7 +38,7 @@ def httpx():
             logger.warning("🌐 httpx called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
         
-        command = f"{httpx_bin} -u {target} -t {threads}"
+        command = f"{httpx_bin} -u {shlex.quote(target)} -t {shlex.quote(str(threads))}"
 
         if probe:
             command += " -probe"
@@ -58,7 +59,7 @@ def httpx():
             command += " -server"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🌍 Starting httpx probe: {target}")
         result = execute_command(command)

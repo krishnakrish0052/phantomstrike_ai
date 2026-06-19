@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -23,10 +24,10 @@ def dirb():
                 "error": "URL parameter is required"
             }), 400
 
-        command = f"dirb {url} {wordlist}"
+        command = f"dirb {shlex.quote(url)} {shlex.quote(wordlist)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"📁 Starting Dirb scan: {url}")
         result = execute_command(command)

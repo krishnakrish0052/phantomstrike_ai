@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -22,10 +23,10 @@ def amass():
                 "error": "Domain parameter is required"
             }), 400
 
-        command = f"amass {mode} -d {domain}"
+        command = f"amass {shlex.quote(mode)} -d {shlex.quote(domain)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔍 Starting Amass {mode}: {domain}")
         result = execute_command(command)

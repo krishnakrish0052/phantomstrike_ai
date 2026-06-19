@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -20,10 +21,10 @@ def joomscan():
                 "error": "URL parameter is required"
             }), 400
 
-        command = f"joomscan --url {url}"
+        command = f"joomscan --url {shlex.quote(url)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔍 Starting Joomscan: {url}")
         result = execute_command(command)

@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -27,15 +28,15 @@ def john():
         command = f"john"
 
         if format_type:
-            command += f" --format={format_type}"
+            command += f" --format={shlex.quote(format_type)}"
 
         if wordlist:
-            command += f" --wordlist={wordlist}"
+            command += f" --wordlist={shlex.quote(wordlist)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
-        command += f" {hash_file}"
+        command += f" {shlex.quote(hash_file)}"
 
         logger.info(f"🔐 Starting John the Ripper: {hash_file}")
         result = execute_command(command, tool="john")

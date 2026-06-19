@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 
@@ -24,15 +25,15 @@ def nmap():
                 "error": "Target parameter is required"
             }), 400
 
-        command = f"nmap {scan_type}"
+        command = f"nmap {shlex.quote(scan_type)}"
 
         if ports:
-            command += f" -p {ports}"
+            command += f" -p {shlex.quote(ports)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
-        command += f" {target}"
+        command += f" {shlex.quote(target)}"
 
         logger.info(f"Starting Nmap scan: {target}")
 

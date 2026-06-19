@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -25,22 +26,22 @@ def masscan():
             logger.warning("🎯 Masscan called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
 
-        command = f"masscan {target} -p{ports} --rate={rate}"
+        command = f"masscan {shlex.quote(target)} -p{shlex.quote(ports)} --rate={shlex.quote(str(rate))}"
 
         if interface:
-            command += f" -e {interface}"
+            command += f" -e {shlex.quote(interface)}"
 
         if router_mac:
-            command += f" --router-mac {router_mac}"
+            command += f" --router-mac {shlex.quote(router_mac)}"
 
         if source_ip:
-            command += f" --source-ip {source_ip}"
+            command += f" --source-ip {shlex.quote(source_ip)}"
 
         if banners:
             command += " --banners"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🚀 Starting Masscan: {target} at rate {rate}")
         result = execute_command(command)

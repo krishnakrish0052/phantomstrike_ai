@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -23,16 +24,16 @@ def jaeles():
             logger.warning("🌐 Jaeles called without URL parameter")
             return jsonify({"error": "URL parameter is required"}), 400
 
-        command = f"jaeles scan -u {url} -c {threads} --timeout {timeout}"
+        command = f"jaeles scan -u {shlex.quote(url)} -c {shlex.quote(str(threads))} --timeout {shlex.quote(str(timeout))}"
 
         if signatures:
-            command += f" -s {signatures}"
+            command += f" -s {shlex.quote(signatures)}"
 
         if config:
-            command += f" --config {config}"
+            command += f" --config {shlex.quote(config)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         logger.info(f"🔬 Starting Jaeles vulnerability scan: {url}")
         result = execute_command(command)

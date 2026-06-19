@@ -5,6 +5,8 @@ import tempfile
 from server_core.command_executor import execute_command
 from server_core.singletons import ROCKYOU_PATH
 
+import shlex
+
 logger = logging.getLogger(__name__)
 
 api_password_cracking_hashcat_bp = Blueprint("api_password_cracking_hashcat", __name__)
@@ -48,15 +50,15 @@ def hashcat():
                 target = tmp_file
                 logger.info("Wrote inline hash to temp file for hashcat")
 
-            command = f"hashcat -m {hash_type} -a {attack_mode} {target}"
+            command = f"hashcat -m {shlex.quote(hash_type)} -a {shlex.quote(attack_mode)} {shlex.quote(target)}"
 
             if attack_mode == "0" and wordlist:
-                command += f" {wordlist}"
+                command += f" {shlex.quote(wordlist)}"
             elif attack_mode == "3" and mask:
-                command += f" {mask}"
+                command += f" {shlex.quote(mask)}"
 
             if additional_args:
-                command += f" {additional_args}"
+                command += f" {shlex.quote(additional_args)}"
 
             logger.info(f"Starting Hashcat attack: mode {attack_mode}")
             result = execute_command(command, tool="hashcat")

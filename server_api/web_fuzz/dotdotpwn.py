@@ -1,3 +1,4 @@
+import shlex
 from flask import Blueprint, request, jsonify
 import logging
 from server_core.command_executor import execute_command
@@ -22,10 +23,10 @@ def dotdotpwn():
                 "error": "Target parameter is required"
             }), 400
 
-        command = f"dotdotpwn -m {module} -h {target}"
+        command = f"dotdotpwn -m {shlex.quote(module)} -h {shlex.quote(target)}"
 
         if additional_args:
-            command += f" {additional_args}"
+            command += f" {shlex.quote(additional_args)}"
 
         command += " -b"
 
